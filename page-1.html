@@ -38,7 +38,13 @@
         </button>
       </div>
     </div>
-  </header><main></main><footer class="site-footer">
+  </header><main>
+    <section class="section">
+      <div class="container">
+        <div id="klar-training-app-2025" class="stack"></div>
+      </div>
+    </section>
+  </main><footer class="site-footer">
     <div class="container footer-inner">
       <div class="footer-grid">
         <div class="stack">
@@ -78,4 +84,295 @@
         <span>Integritet · Tillgänglighet · Kvalitet</span>
       </div>
     </div>
-  </footer><script src="script.js"></script></body></html>
+  </footer><script src="script.js"></script>
+
+  <!-- Klar Training App: React + Babel (added) -->
+  <style>
+    .klar-train-2025-week { display: grid; gap: var(--space-4); }
+    @media (min-width: 768px) { .klar-train-2025-week { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { .klar-train-2025-week { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .klar-train-2025-progress {
+      width: 100%; height: 0.75rem; border-radius: var(--radius-full);
+      background: var(--input); overflow: hidden;
+    }
+    .klar-train-2025-progress > span {
+      display: block; height: 100%; border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--primary), var(--color-teal-500));
+      transition: width var(--transition);
+    }
+    .klar-train-2025-chip {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-full);
+      border: 0.0625rem solid var(--border); background: var(--card);
+      color: var(--muted-foreground); font-size: var(--text-sm); cursor: pointer;
+      transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+    .klar-train-2025-chip.is-selected {
+      background: var(--primary-soft); color: var(--primary);
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+    }
+    .klar-train-2025-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2); }
+    .klar-train-2025-cal-day {
+      display: grid; gap: var(--space-1); place-items: center; text-align: center;
+      padding: var(--space-3) var(--space-2); border-radius: var(--radius-md);
+      border: 0.0625rem solid var(--border); background: var(--card);
+      font-size: var(--text-xs); min-height: 4.5rem;
+    }
+    .klar-train-2025-cal-day.is-done {
+      background: var(--primary-soft);
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+    }
+    .klar-train-2025-cal-day.is-partial {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+    }
+    .klar-train-2025-dot {
+      display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem;
+      border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: var(--font-bold);
+      background: var(--muted); color: var(--muted-foreground);
+    }
+    .klar-train-2025-cal-day.is-done .klar-train-2025-dot { background: var(--primary); color: var(--primary-foreground); }
+    .klar-train-2025-ex-row {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+      border: 0.0625rem solid var(--border); background: var(--card);
+    }
+    .klar-train-2025-check { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+    .klar-train-2025-check input { width: 1.1rem; height: 1.1rem; accent-color: var(--primary); }
+    .klar-train-2025-x {
+      background: transparent; color: var(--destructive); cursor: pointer; padding: 0 var(--space-2);
+      font-size: var(--text-lg); line-height: 1;
+    }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const DAYS = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
+
+    function TrainingApp() {
+      const [exercises, setExercises] = useState([
+        { id: 1, name: "Knäböj" },
+        { id: 2, name: "Marklyft" },
+        { id: 3, name: "Bänkpress" },
+      ]);
+      const [newName, setNewName] = useState("");
+      // plan[dayIndex] = array of exercise ids selected for that day
+      const [plan, setPlan] = useState(() => DAYS.map(() => []));
+      // done[dayIndex] = { exerciseId: true } completed exercises
+      const [done, setDone] = useState(() => DAYS.map(() => ({})));
+
+      const addExercise = (e) => {
+        e.preventDefault();
+        const name = newName.trim();
+        if (!name) return;
+        setExercises((prev) => [...prev, { id: Date.now(), name }]);
+        setNewName("");
+      };
+
+      const removeExercise = (id) => {
+        setExercises((prev) => prev.filter((ex) => ex.id !== id));
+        setPlan((prev) => prev.map((day) => day.filter((exId) => exId !== id)));
+        setDone((prev) => prev.map((day) => {
+          const copy = { ...day };
+          delete copy[id];
+          return copy;
+        }));
+      };
+
+      const toggleDayExercise = (dayIdx, exId) => {
+        setPlan((prev) => prev.map((day, i) => {
+          if (i !== dayIdx) return day;
+          return day.includes(exId) ? day.filter((x) => x !== exId) : [...day, exId];
+        }));
+      };
+
+      const toggleDone = (dayIdx, exId) => {
+        setDone((prev) => prev.map((day, i) => {
+          if (i !== dayIdx) return day;
+          const copy = { ...day };
+          if (copy[exId]) delete copy[exId]; else copy[exId] = true;
+          return copy;
+        }));
+      };
+
+      const exName = (id) => {
+        const ex = exercises.find((e) => e.id === id);
+        return ex ? ex.name : "Borttagen";
+      };
+
+      const totals = useMemo(() => {
+        let planned = 0;
+        let completed = 0;
+        plan.forEach((day, i) => {
+          planned += day.length;
+          day.forEach((exId) => { if (done[i][exId]) completed += 1; });
+        });
+        return { planned, completed, remaining: planned - completed };
+      }, [plan, done]);
+
+      const pct = totals.planned ? Math.round((totals.completed / totals.planned) * 100) : 0;
+
+      const dayStatus = (i) => {
+        const planned = plan[i].length;
+        if (!planned) return "empty";
+        const completed = plan[i].filter((exId) => done[i][exId]).length;
+        if (completed === planned) return "done";
+        if (completed > 0) return "partial";
+        return "planned";
+      };
+
+      return (
+        <React.Fragment>
+          <div className="section-header">
+            <span className="eyebrow">Träningsplan</span>
+            <h2>Din veckoträning</h2>
+            <p className="lead">Bygg din övningslista, planera varje dag och följ dina framsteg.</p>
+          </div>
+
+          {/* Exercise list */}
+          <div className="card">
+            <div className="card__header">
+              <h3 className="card__title">Övningar</h3>
+            </div>
+            <div className="card__body">
+              <form className="cluster" onSubmit={addExercise}>
+                <input
+                  className="input"
+                  style={{ flex: "1 1 12rem", minWidth: "0" }}
+                  type="text"
+                  placeholder="Lägg till en övning…"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                />
+                <button className="btn btn-primary" type="submit">Lägg till</button>
+              </form>
+              {exercises.length === 0 ? (
+                <p className="form-note">Inga övningar ännu. Lägg till en ovan.</p>
+              ) : (
+                <div className="stack" style={{ gap: "var(--space-2)" }}>
+                  {exercises.map((ex) => (
+                    <div className="klar-train-2025-ex-row" key={ex.id}>
+                      <span className="text-foreground">{ex.name}</span>
+                      <button
+                        className="klar-train-2025-x"
+                        type="button"
+                        aria-label={"Ta bort " + ex.name}
+                        onClick={() => removeExercise(ex.id)}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Completion */}
+          <div className="card">
+            <div className="card__body">
+              <div className="cluster justify-between">
+                <h3 className="card__title">Slutförande</h3>
+                <span className="badge badge-primary">{pct}%</span>
+              </div>
+              <div className="klar-train-2025-progress" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
+                <span style={{ width: pct + "%" }}></span>
+              </div>
+              <p className="form-note">
+                {totals.completed} av {totals.planned} övningar klara
+                {totals.remaining > 0
+                  ? " · " + totals.remaining + " kvar denna vecka."
+                  : totals.planned > 0
+                    ? " · Allt klart, bra jobbat!"
+                    : " · Planera dina dagar nedan."}
+              </p>
+            </div>
+          </div>
+
+          {/* Week planner */}
+          <div className="klar-train-2025-week">
+            {DAYS.map((day, i) => (
+              <div className="card" key={day}>
+                <div className="card__header">
+                  <h4 className="card__title">{day}</h4>
+                </div>
+                <div className="card__body" style={{ gap: "var(--space-3)" }}>
+                  {exercises.length === 0 ? (
+                    <p className="form-note">Lägg till övningar först.</p>
+                  ) : (
+                    <div className="cluster">
+                      {exercises.map((ex) => {
+                        const selected = plan[i].includes(ex.id);
+                        return (
+                          <button
+                            key={ex.id}
+                            type="button"
+                            className={"klar-train-2025-chip" + (selected ? " is-selected" : "")}
+                            onClick={() => toggleDayExercise(i, ex.id)}
+                            aria-pressed={selected}
+                          >
+                            {selected ? "✓ " : "+ "}{ex.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {plan[i].length > 0 && (
+                    <div className="stack" style={{ gap: "var(--space-2)" }}>
+                      {plan[i].map((exId) => (
+                        <label className="klar-train-2025-check" key={exId}>
+                          <input
+                            type="checkbox"
+                            checked={!!done[i][exId]}
+                            onChange={() => toggleDone(i, exId)}
+                          />
+                          <span style={{ color: done[i][exId] ? "var(--muted-foreground)" : "var(--foreground)", textDecoration: done[i][exId] ? "line-through" : "none" }}>
+                            {exName(exId)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar */}
+          <div className="card">
+            <div className="card__header">
+              <h3 className="card__title">Veckokalender</h3>
+            </div>
+            <div className="card__body">
+              <div className="klar-train-2025-cal">
+                {DAYS.map((day, i) => {
+                  const status = dayStatus(i);
+                  const completed = plan[i].filter((exId) => done[i][exId]).length;
+                  return (
+                    <div
+                      key={day}
+                      className={
+                        "klar-train-2025-cal-day" +
+                        (status === "done" ? " is-done" : "") +
+                        (status === "partial" ? " is-partial" : "")
+                      }
+                    >
+                      <strong className="text-foreground">{day}</strong>
+                      <span className="klar-train-2025-dot">
+                        {status === "done" ? "✓" : status === "empty" ? "–" : completed + "/" + plan[i].length}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="form-note mt-4">Grön = alla övningar klara · Guldram = delvis klart.</p>
+            </div>
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("klar-training-app-2025")).render(<TrainingApp />);
+  </script>
+</body></html>
