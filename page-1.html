@@ -282,6 +282,37 @@
         width: 100%;
         justify-content: flex-start;
       }
+
+      /* View toggle (Idag / Vecka) */
+      .klar-train-2025-tabs {
+        display: inline-flex;
+        gap: var(--space-1);
+        padding: var(--space-1);
+        border: 0.0625rem solid var(--border);
+        border-radius: var(--radius-full);
+        background: var(--card);
+        width: fit-content;
+      }
+
+      .klar-train-2025-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.375rem;
+        padding-inline: var(--space-6);
+        border-radius: var(--radius-full);
+        background: transparent;
+        color: var(--muted-foreground);
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        cursor: pointer;
+        transition: background-color var(--transition-fast), color var(--transition-fast);
+      }
+
+      .klar-train-2025-tab.is-active {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
     </style>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -291,6 +322,12 @@
 
     const DAYS = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
     const STORAGE_KEY = "training-app";
+
+    // Map JS getDay() (0=Sun..6=Sat) to our Mon-first DAYS index (0=Mon..6=Sun)
+    function todayIndex() {
+      const js = new Date().getDay();
+      return (js + 6) % 7;
+    }
 
     function loadState() {
       try {
@@ -314,6 +351,80 @@
       { id: 3, name: "Bänkpress" },
     ];
 
+    // Renders a single day's planning card (used in both Idag and Vecka views)
+    function DayCard({ day, i, exercises, plan, done, openPicker, popRef, setOpenPicker, toggleDayExercise, toggleDone, exName }) {
+      return (
+        <div className={"card" + (openPicker === i ? " klar-train-2025-card-active" : "")}>
+          <div className="card__header">
+            <div className="cluster justify-between">
+              <h4 className="card__title">{day}</h4>
+              <div className="klar-train-2025-popwrap" ref={openPicker === i ? popRef : null}>
+                <button
+                  type="button"
+                  className="klar-train-2025-iconbtn"
+                  aria-label={"Välj övningar för " + day}
+                  aria-haspopup="true"
+                  aria-expanded={openPicker === i}
+                  onClick={() => setOpenPicker(openPicker === i ? null : i)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    <circle cx="3.5" cy="6" r="1.4" fill="currentColor"></circle>
+                    <circle cx="3.5" cy="12" r="1.4" fill="currentColor"></circle>
+                    <circle cx="3.5" cy="18" r="1.4" fill="currentColor"></circle>
+                  </svg>
+                </button>
+                {openPicker === i && (
+                  <div className="klar-train-2025-pop" role="menu">
+                    {exercises.length === 0 ? (
+                      <p className="form-note" style={{ margin: 0 }}>Lägg till övningar först.</p>
+                    ) : (
+                      exercises.map((ex) => {
+                        const selected = plan[i].includes(ex.id);
+                        return (
+                          <button
+                            key={ex.id}
+                            type="button"
+                            className={"klar-train-2025-chip klar-train-2025-pop-item" + (selected ? " is-selected" : "")}
+                            onClick={() => toggleDayExercise(i, ex.id)}
+                            aria-pressed={selected}
+                            role="menuitemcheckbox"
+                            aria-checked={selected}
+                          >
+                            {selected ? "✓ " : "+ "}{ex.name}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="card__body" style={{ gap: "var(--space-3)" }}>
+            {plan[i].length > 0 ? (
+              <div className="stack" style={{ gap: "var(--space-2)" }}>
+                {plan[i].map((exId) => (
+                  <label className="klar-train-2025-check" key={exId}>
+                    <input
+                      type="checkbox"
+                      checked={!!done[i][exId]}
+                      onChange={() => toggleDone(i, exId)}
+                    />
+                    <span style={{ color: done[i][exId] ? "var(--muted-foreground)" : "var(--foreground)", textDecoration: done[i][exId] ? "line-through" : "none" }}>
+                      {exName(exId)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="form-note">Inga övningar valda. Öppna listan via ikonen för att lägga till.</p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     function TrainingApp() {
       const saved = loadState();
 
@@ -325,7 +436,11 @@
       const [done, setDone] = useState(saved ? saved.done : DAYS.map(() => ({})));
       // which day's exercise picker popover is open (null = none)
       const [openPicker, setOpenPicker] = useState(null);
+      // current view: "today" (Idag) or "week" (Vecka)
+      const [view, setView] = useState("today");
       const popRef = useRef(null);
+
+      const today = todayIndex();
 
       // Persist to localStorage on any change
       useEffect(() => {
@@ -335,6 +450,11 @@
           /* ignore storage errors */
         }
       }, [exercises, plan, done]);
+
+      // Close picker when switching views
+      useEffect(() => {
+        setOpenPicker(null);
+      }, [view]);
 
       // Close picker when clicking outside or pressing Escape
       useEffect(() => {
@@ -392,6 +512,7 @@
         return ex ? ex.name : "Borttagen";
       };
 
+      // Week totals
       const totals = useMemo(() => {
         let planned = 0;
         let completed = 0;
@@ -402,7 +523,15 @@
         return { planned, completed, remaining: planned - completed };
       }, [plan, done]);
 
-      const pct = totals.planned ? Math.round((totals.completed / totals.planned) * 100) : 0;
+      // Today-only totals
+      const todayTotals = useMemo(() => {
+        const planned = plan[today].length;
+        const completed = plan[today].filter((exId) => done[today][exId]).length;
+        return { planned, completed, remaining: planned - completed };
+      }, [plan, done, today]);
+
+      const activeTotals = view === "today" ? todayTotals : totals;
+      const pct = activeTotals.planned ? Math.round((activeTotals.completed / activeTotals.planned) * 100) : 0;
 
       const dayStatus = (i) => {
         const planned = plan[i].length;
@@ -413,6 +542,10 @@
         return "planned";
       };
 
+      const dayCardProps = {
+        exercises, plan, done, openPicker, popRef, setOpenPicker, toggleDayExercise, toggleDone, exName,
+      };
+
       return (
         <React.Fragment>
           <div className="section-header">
@@ -421,131 +554,95 @@
             <p className="lead">Bygg din övningslista, planera varje dag och följ dina framsteg.</p>
           </div>
 
+          {/* View toggle */}
+          <div className="klar-train-2025-tabs" role="tablist" aria-label="Vy">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === "today"}
+              className={"klar-train-2025-tab" + (view === "today" ? " is-active" : "")}
+              onClick={() => setView("today")}
+            >Idag</button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === "week"}
+              className={"klar-train-2025-tab" + (view === "week" ? " is-active" : "")}
+              onClick={() => setView("week")}
+            >Vecka</button>
+          </div>
+
           {/* Completion */}
           <div className="card">
             <div className="card__body">
               <div className="cluster justify-between">
-                <h3 className="card__title">Slutförande</h3>
+                <h3 className="card__title">
+                  {view === "today" ? "Slutförande idag (" + DAYS[today] + ")" : "Slutförande"}
+                </h3>
                 <span className="badge badge-primary">{pct}%</span>
               </div>
               <div className="klar-train-2025-progress" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
                 <span style={{ width: pct + "%" }}></span>
               </div>
               <p className="form-note">
-                {totals.completed} av {totals.planned} övningar klara
-                {totals.remaining > 0
-                  ? " · " + totals.remaining + " kvar denna vecka."
-                  : totals.planned > 0
+                {activeTotals.completed} av {activeTotals.planned} övningar klara
+                {activeTotals.remaining > 0
+                  ? " · " + activeTotals.remaining + (view === "today" ? " kvar idag." : " kvar denna vecka.")
+                  : activeTotals.planned > 0
                     ? " · Allt klart, bra jobbat!"
-                    : " · Planera dina dagar nedan."}
+                    : (view === "today" ? " · Inga övningar planerade idag." : " · Planera dina dagar nedan.")}
               </p>
             </div>
           </div>
 
-          {/* Week planner */}
-          <div className="klar-train-2025-week">
-            {DAYS.map((day, i) => (
-              <div className={"card" + (openPicker === i ? " klar-train-2025-card-active" : "")} key={day}>
-                <div className="card__header">
-                  <div className="cluster justify-between">
-                    <h4 className="card__title">{day}</h4>
-                    <div className="klar-train-2025-popwrap" ref={openPicker === i ? popRef : null}>
-                      <button
-                        type="button"
-                        className="klar-train-2025-iconbtn"
-                        aria-label={"Välj övningar för " + day}
-                        aria-haspopup="true"
-                        aria-expanded={openPicker === i}
-                        onClick={() => setOpenPicker(openPicker === i ? null : i)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                          <circle cx="3.5" cy="6" r="1.4" fill="currentColor"></circle>
-                          <circle cx="3.5" cy="12" r="1.4" fill="currentColor"></circle>
-                          <circle cx="3.5" cy="18" r="1.4" fill="currentColor"></circle>
-                        </svg>
-                      </button>
-                      {openPicker === i && (
-                        <div className="klar-train-2025-pop" role="menu">
-                          {exercises.length === 0 ? (
-                            <p className="form-note" style={{ margin: 0 }}>Lägg till övningar först.</p>
-                          ) : (
-                            exercises.map((ex) => {
-                              const selected = plan[i].includes(ex.id);
-                              return (
-                                <button
-                                  key={ex.id}
-                                  type="button"
-                                  className={"klar-train-2025-chip klar-train-2025-pop-item" + (selected ? " is-selected" : "")}
-                                  onClick={() => toggleDayExercise(i, ex.id)}
-                                  aria-pressed={selected}
-                                  role="menuitemcheckbox"
-                                  aria-checked={selected}
-                                >
-                                  {selected ? "✓ " : "+ "}{ex.name}
-                                </button>
-                              );
-                            })
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="card__body" style={{ gap: "var(--space-3)" }}>
-                  {plan[i].length > 0 ? (
-                    <div className="stack" style={{ gap: "var(--space-2)" }}>
-                      {plan[i].map((exId) => (
-                        <label className="klar-train-2025-check" key={exId}>
-                          <input
-                            type="checkbox"
-                            checked={!!done[i][exId]}
-                            onChange={() => toggleDone(i, exId)}
-                          />
-                          <span style={{ color: done[i][exId] ? "var(--muted-foreground)" : "var(--foreground)", textDecoration: done[i][exId] ? "line-through" : "none" }}>
-                            {exName(exId)}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="form-note">Inga övningar valda. Öppna listan via ikonen för att lägga till.</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Today view: only today's day card */}
+          {view === "today" && (
+            <div className="klar-train-2025-week">
+              <DayCard day={DAYS[today]} i={today} {...dayCardProps} />
+            </div>
+          )}
 
-          {/* Calendar */}
-          <div className="card">
-            <div className="card__header">
-              <h3 className="card__title">Veckokalender</h3>
+          {/* Week view: all days planner */}
+          {view === "week" && (
+            <div className="klar-train-2025-week">
+              {DAYS.map((day, i) => (
+                <DayCard key={day} day={day} i={i} {...dayCardProps} />
+              ))}
             </div>
-            <div className="card__body">
-              <div className="klar-train-2025-cal">
-                {DAYS.map((day, i) => {
-                  const status = dayStatus(i);
-                  const completed = plan[i].filter((exId) => done[i][exId]).length;
-                  return (
-                    <div
-                      key={day}
-                      className={
-                        "klar-train-2025-cal-day" +
-                        (status === "done" ? " is-done" : "") +
-                        (status === "partial" ? " is-partial" : "")
-                      }
-                    >
-                      <strong className="text-foreground">{day}</strong>
-                      <span className="klar-train-2025-dot">
-                        {status === "done" ? "✓" : status === "empty" ? "–" : completed + "/" + plan[i].length}
-                      </span>
-                    </div>
-                  );
-                })}
+          )}
+
+          {/* Calendar (week view only) */}
+          {view === "week" && (
+            <div className="card">
+              <div className="card__header">
+                <h3 className="card__title">Veckokalender</h3>
               </div>
-              <p className="form-note mt-4">Grön = alla övningar klara · Guldram = delvis klart.</p>
+              <div className="card__body">
+                <div className="klar-train-2025-cal">
+                  {DAYS.map((day, i) => {
+                    const status = dayStatus(i);
+                    const completed = plan[i].filter((exId) => done[i][exId]).length;
+                    return (
+                      <div
+                        key={day}
+                        className={
+                          "klar-train-2025-cal-day" +
+                          (status === "done" ? " is-done" : "") +
+                          (status === "partial" ? " is-partial" : "")
+                        }
+                      >
+                        <strong className="text-foreground">{day}</strong>
+                        <span className="klar-train-2025-dot">
+                          {status === "done" ? "✓" : status === "empty" ? "–" : completed + "/" + plan[i].length}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="form-note mt-4">Grön = alla övningar klara · Guldram = delvis klart.</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Exercise list */}
           <div className="card">
