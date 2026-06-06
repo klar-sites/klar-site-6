@@ -153,6 +153,13 @@
       border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
     }
     .klar-train-2025-popwrap { position: relative; }
+    /* Allow the popover to escape the card's overflow:hidden clipping */
+    .klar-train-2025-week .card { overflow: visible; }
+    /* Raise the card whose picker is open above sibling cards so the popover is not clipped/covered */
+    .klar-train-2025-week .card.klar-train-2025-card-active {
+      position: relative;
+      z-index: 40;
+    }
     .klar-train-2025-pop {
       position: absolute; z-index: 30; top: calc(100% + 0.375rem); left: 0;
       min-width: 14rem; max-width: 18rem; max-height: 18rem; overflow: auto;
@@ -362,7 +369,7 @@
           {/* Week planner */}
           <div className="klar-train-2025-week">
             {DAYS.map((day, i) => (
-              <div className="card" key={day}>
+              <div className={"card" + (openPicker === i ? " klar-train-2025-card-active" : "")} key={day}>
                 <div className="card__header">
                   <div className="cluster justify-between">
                     <h4 className="card__title">{day}</h4>
