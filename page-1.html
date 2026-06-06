@@ -142,26 +142,96 @@
       background: transparent; color: var(--destructive); cursor: pointer; padding: 0 var(--space-2);
       font-size: var(--text-lg); line-height: 1;
     }
+    .klar-train-2025-iconbtn {
+      display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem;
+      border: 0.0625rem solid var(--border); border-radius: var(--radius-md);
+      background: var(--card); color: var(--primary); cursor: pointer;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast);
+    }
+    .klar-train-2025-iconbtn:hover {
+      background: var(--primary-soft);
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+    }
+    .klar-train-2025-popwrap { position: relative; }
+    .klar-train-2025-pop {
+      position: absolute; z-index: 30; top: calc(100% + 0.375rem); left: 0;
+      min-width: 14rem; max-width: 18rem; max-height: 18rem; overflow: auto;
+      display: grid; gap: var(--space-2);
+      padding: var(--space-3);
+      border: 0.0625rem solid var(--border); border-radius: var(--radius-lg);
+      background: var(--card); box-shadow: var(--shadow-lg);
+    }
+    .klar-train-2025-pop-item { width: 100%; justify-content: flex-start; }
   </style>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script type="text/babel">
-    const { useState, useMemo } = React;
+    const { useState, useMemo, useEffect, useRef } = React;
 
     const DAYS = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
+    const STORAGE_KEY = "training-app";
+
+    function loadState() {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== "object") return null;
+        const exercises = Array.isArray(data.exercises) ? data.exercises : null;
+        const plan = Array.isArray(data.plan) && data.plan.length === DAYS.length ? data.plan : null;
+        const done = Array.isArray(data.done) && data.done.length === DAYS.length ? data.done : null;
+        if (!exercises || !plan || !done) return null;
+        return { exercises, plan, done };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    const DEFAULT_EXERCISES = [
+      { id: 1, name: "Knäböj" },
+      { id: 2, name: "Marklyft" },
+      { id: 3, name: "Bänkpress" },
+    ];
 
     function TrainingApp() {
-      const [exercises, setExercises] = useState([
-        { id: 1, name: "Knäböj" },
-        { id: 2, name: "Marklyft" },
-        { id: 3, name: "Bänkpress" },
-      ]);
+      const saved = loadState();
+
+      const [exercises, setExercises] = useState(saved ? saved.exercises : DEFAULT_EXERCISES);
       const [newName, setNewName] = useState("");
       // plan[dayIndex] = array of exercise ids selected for that day
-      const [plan, setPlan] = useState(() => DAYS.map(() => []));
+      const [plan, setPlan] = useState(saved ? saved.plan : DAYS.map(() => []));
       // done[dayIndex] = { exerciseId: true } completed exercises
-      const [done, setDone] = useState(() => DAYS.map(() => ({})));
+      const [done, setDone] = useState(saved ? saved.done : DAYS.map(() => ({})));
+      // which day's exercise picker popover is open (null = none)
+      const [openPicker, setOpenPicker] = useState(null);
+      const popRef = useRef(null);
+
+      // Persist to localStorage on any change
+      useEffect(() => {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ exercises, plan, done }));
+        } catch (e) {
+          /* ignore storage errors */
+        }
+      }, [exercises, plan, done]);
+
+      // Close picker when clicking outside or pressing Escape
+      useEffect(() => {
+        if (openPicker === null) return;
+        const onClick = (e) => {
+          if (popRef.current && !popRef.current.contains(e.target)) {
+            setOpenPicker(null);
+          }
+        };
+        const onKey = (e) => { if (e.key === "Escape") setOpenPicker(null); };
+        document.addEventListener("mousedown", onClick);
+        document.addEventListener("keydown", onKey);
+        return () => {
+          document.removeEventListener("mousedown", onClick);
+          document.removeEventListener("keydown", onKey);
+        };
+      }, [openPicker]);
 
       const addExercise = (e) => {
         e.preventDefault();
@@ -294,31 +364,53 @@
             {DAYS.map((day, i) => (
               <div className="card" key={day}>
                 <div className="card__header">
-                  <h4 className="card__title">{day}</h4>
+                  <div className="cluster justify-between">
+                    <h4 className="card__title">{day}</h4>
+                    <div className="klar-train-2025-popwrap" ref={openPicker === i ? popRef : null}>
+                      <button
+                        type="button"
+                        className="klar-train-2025-iconbtn"
+                        aria-label={"Välj övningar för " + day}
+                        aria-haspopup="true"
+                        aria-expanded={openPicker === i}
+                        onClick={() => setOpenPicker(openPicker === i ? null : i)}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                          <circle cx="3.5" cy="6" r="1.4" fill="currentColor"></circle>
+                          <circle cx="3.5" cy="12" r="1.4" fill="currentColor"></circle>
+                          <circle cx="3.5" cy="18" r="1.4" fill="currentColor"></circle>
+                        </svg>
+                      </button>
+                      {openPicker === i && (
+                        <div className="klar-train-2025-pop" role="menu">
+                          {exercises.length === 0 ? (
+                            <p className="form-note" style={{ margin: 0 }}>Lägg till övningar först.</p>
+                          ) : (
+                            exercises.map((ex) => {
+                              const selected = plan[i].includes(ex.id);
+                              return (
+                                <button
+                                  key={ex.id}
+                                  type="button"
+                                  className={"klar-train-2025-chip klar-train-2025-pop-item" + (selected ? " is-selected" : "")}
+                                  onClick={() => toggleDayExercise(i, ex.id)}
+                                  aria-pressed={selected}
+                                  role="menuitemcheckbox"
+                                  aria-checked={selected}
+                                >
+                                  {selected ? "✓ " : "+ "}{ex.name}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div className="card__body" style={{ gap: "var(--space-3)" }}>
-                  {exercises.length === 0 ? (
-                    <p className="form-note">Lägg till övningar först.</p>
-                  ) : (
-                    <div className="cluster">
-                      {exercises.map((ex) => {
-                        const selected = plan[i].includes(ex.id);
-                        return (
-                          <button
-                            key={ex.id}
-                            type="button"
-                            className={"klar-train-2025-chip" + (selected ? " is-selected" : "")}
-                            onClick={() => toggleDayExercise(i, ex.id)}
-                            aria-pressed={selected}
-                          >
-                            {selected ? "✓ " : "+ "}{ex.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {plan[i].length > 0 && (
+                  {plan[i].length > 0 ? (
                     <div className="stack" style={{ gap: "var(--space-2)" }}>
                       {plan[i].map((exId) => (
                         <label className="klar-train-2025-check" key={exId}>
@@ -333,6 +425,8 @@
                         </label>
                       ))}
                     </div>
+                  ) : (
+                    <p className="form-note">Inga övningar valda. Öppna listan via ikonen för att lägga till.</p>
                   )}
                 </div>
               </div>
