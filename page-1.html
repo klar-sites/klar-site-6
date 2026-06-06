@@ -113,6 +113,11 @@
         }
       }
 
+      /* Today view: full-width single column */
+      .klar-train-2025-week.klar-train-2025-week-today {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       .klar-train-2025-progress {
         width: 100%;
         height: 0.75rem;
@@ -546,6 +551,31 @@
         exercises, plan, done, openPicker, popRef, setOpenPicker, toggleDayExercise, toggleDone, exName,
       };
 
+      // Completion card (shared markup)
+      const completionCard = (
+        <div className="card">
+          <div className="card__body">
+            <div className="cluster justify-between">
+              <h3 className="card__title">
+                {view === "today" ? "Slutförande idag (" + DAYS[today] + ")" : "Slutförande"}
+              </h3>
+              <span className="badge badge-primary">{pct}%</span>
+            </div>
+            <div className="klar-train-2025-progress" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
+              <span style={{ width: pct + "%" }}></span>
+            </div>
+            <p className="form-note">
+              {activeTotals.completed} av {activeTotals.planned} övningar klara
+              {activeTotals.remaining > 0
+                ? " · " + activeTotals.remaining + (view === "today" ? " kvar idag." : " kvar denna vecka.")
+                : activeTotals.planned > 0
+                  ? " · Allt klart, bra jobbat!"
+                  : (view === "today" ? " · Inga övningar planerade idag." : " · Planera dina dagar nedan.")}
+            </p>
+          </div>
+        </div>
+      );
+
       return (
         <React.Fragment>
           <div className="section-header">
@@ -572,35 +602,18 @@
             >Vecka</button>
           </div>
 
-          {/* Completion */}
-          <div className="card">
-            <div className="card__body">
-              <div className="cluster justify-between">
-                <h3 className="card__title">
-                  {view === "today" ? "Slutförande idag (" + DAYS[today] + ")" : "Slutförande"}
-                </h3>
-                <span className="badge badge-primary">{pct}%</span>
-              </div>
-              <div className="klar-train-2025-progress" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
-                <span style={{ width: pct + "%" }}></span>
-              </div>
-              <p className="form-note">
-                {activeTotals.completed} av {activeTotals.planned} övningar klara
-                {activeTotals.remaining > 0
-                  ? " · " + activeTotals.remaining + (view === "today" ? " kvar idag." : " kvar denna vecka.")
-                  : activeTotals.planned > 0
-                    ? " · Allt klart, bra jobbat!"
-                    : (view === "today" ? " · Inga övningar planerade idag." : " · Planera dina dagar nedan.")}
-              </p>
-            </div>
-          </div>
-
-          {/* Today view: only today's day card */}
+          {/* Today view: day card first (full width), then completion */}
           {view === "today" && (
-            <div className="klar-train-2025-week">
+            <div className="klar-train-2025-week klar-train-2025-week-today">
               <DayCard day={DAYS[today]} i={today} {...dayCardProps} />
             </div>
           )}
+
+          {/* Completion (week view shows it above the planner) */}
+          {view === "week" && completionCard}
+
+          {/* Completion (today view shows it below the day card) */}
+          {view === "today" && completionCard}
 
           {/* Week view: all days planner */}
           {view === "week" && (
