@@ -1,81 +1,2131 @@
-<!DOCTYPE html><html lang="sv"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nordisk Klinikhälsa · Privat specialistklinik i Stockholm</title>
-  <meta name="description" content="Nordisk Klinikhälsa erbjuder trygg, personlig och premium specialistvård i Stockholm. Boka konsultation för hudhälsa, medicinsk rådgivning och uppföljning.">
-  <link rel="canonical" href="index.html">
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body><header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="index.html" aria-label="Nordisk Klinikhälsa startsida">
-        <span class="brand-mark" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path>
-          </svg>
-        </span>
-        <span class="brand-text">
-          <span class="brand-name">Nordisk Klinikhälsa</span>
-          <span class="brand-subtitle">Specialistklinik</span>
-        </span>
-      </a>
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slate — Room &amp; resource booking</title>
+    <meta
+      name="description"
+      content="Slate is a premium room and resource booking platform. Browse spaces, check availability, and book in seconds."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
-      <nav class="site-nav" aria-label="Huvudmeny">
-        <a class="nav-link" href="index.html" aria-current="page">Start</a>
-        <a class="nav-link" href="behandling.html">Behandling</a>
-        <a class="nav-link" href="kontakt.html">Kontakt</a>
-      </nav>
+    <!-- React + Babel via CDN (no build step) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-      <div class="header-actions">
-        <a class="btn btn-primary btn-sm" href="kontakt.html">Boka tid</a>
-        <button class="theme-toggle" type="button" aria-label="Toggle theme">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
-          </svg>
-        </button>
-        <button class="mobile-toggle" type="button" aria-label="Öppna meny" aria-expanded="false">
-          <span class="mobile-toggle__bars" aria-hidden="true"></span>
-        </button>
-      </div>
+    <style>
+      /* ───────────── Reset ───────────── */
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      /* ───────────── Variables (light) ───────────── */
+      :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f7f8fa;
+        --bg-elevated: #ffffff;
+        --bg-hover: #f1f3f6;
+        --bg-inset: #f1f3f6;
+        --text-primary: #0f172a;
+        --text-secondary: #5b6472;
+        --text-tertiary: #95a0b1;
+        --border-color: #e6e8ec;
+        --border-strong: #d4d8de;
+        --accent: #4f46e5;
+        --accent-hover: #4338ca;
+        --accent-soft: rgba(79, 70, 229, 0.1);
+        --accent-contrast: #ffffff;
+        --success: #16a34a;
+        --success-soft: rgba(22, 163, 74, 0.12);
+        --danger: #dc2626;
+        --danger-soft: rgba(220, 38, 38, 0.1);
+        --warning: #d97706;
+
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 22px;
+
+        --space-xs: 4px;
+        --space-sm: 8px;
+        --space-md: 16px;
+        --space-lg: 24px;
+        --space-xl: 32px;
+        --space-2xl: 48px;
+
+        --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+        --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08);
+        --shadow-lg: 0 14px 40px rgba(15, 23, 42, 0.14);
+
+        --header-h: 64px;
+        --maxw: 1160px;
+        --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* ───────────── Dark theme ───────────── */
+      [data-theme="dark"] {
+        --bg-primary: #0b0d12;
+        --bg-secondary: #0f1218;
+        --bg-elevated: #151922;
+        --bg-hover: #1b212c;
+        --bg-inset: #11141b;
+        --text-primary: #f2f4f8;
+        --text-secondary: #9aa3b2;
+        --text-tertiary: #5f6878;
+        --border-color: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.16);
+        --accent: #7c84ff;
+        --accent-hover: #939aff;
+        --accent-soft: rgba(124, 132, 255, 0.14);
+        --accent-contrast: #0b0d12;
+        --success: #34d399;
+        --success-soft: rgba(52, 211, 153, 0.14);
+        --danger: #f87171;
+        --danger-soft: rgba(248, 113, 113, 0.14);
+        --warning: #fbbf24;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+        --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+        --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.6);
+      }
+
+      /* ───────────── Base / Typography ───────────── */
+      body {
+        font-family: var(--font);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      h1, h2, h3, h4 {
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      ::selection {
+        background: var(--accent-soft);
+      }
+      .container {
+        max-width: var(--maxw);
+        margin: 0 auto;
+        padding: 0 var(--space-lg);
+      }
+      .muted {
+        color: var(--text-secondary);
+      }
+      .tiny {
+        font-size: 12px;
+        color: var(--text-tertiary);
+      }
+
+      /* ───────────── Buttons ───────────── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1;
+        height: 40px;
+        padding: 0 18px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.18s var(--ease);
+        background: var(--bg-inset);
+        color: var(--text-primary);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: var(--accent-contrast);
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+      .btn-secondary {
+        background: var(--bg-elevated);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+      }
+      .btn-secondary:hover:not(:disabled) {
+        background: var(--bg-hover);
+        border-color: var(--border-strong);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+      }
+      .btn-ghost:hover:not(:disabled) {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .btn-danger {
+        background: transparent;
+        border-color: var(--border-color);
+        color: var(--danger);
+      }
+      .btn-danger:hover:not(:disabled) {
+        background: var(--danger-soft);
+        border-color: transparent;
+      }
+      .btn-sm {
+        height: 32px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+      .btn-lg {
+        height: 48px;
+        padding: 0 26px;
+        font-size: 15px;
+      }
+      .btn-block {
+        width: 100%;
+      }
+
+      /* ───────────── Cards ───────────── */
+      .card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+      }
+      .card-pad {
+        padding: var(--space-lg);
+      }
+
+      /* ───────────── Forms ───────────── */
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+      .input,
+      .select {
+        font: inherit;
+        font-size: 14px;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        width: 100%;
+      }
+      .input:focus,
+      .select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+      .input::placeholder {
+        color: var(--text-tertiary);
+      }
+      .select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2395a0b1' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 34px;
+      }
+
+      /* toggle */
+      .toggle {
+        position: relative;
+        width: 42px;
+        height: 24px;
+        border-radius: 999px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background 0.18s;
+        flex-shrink: 0;
+      }
+      .toggle.on {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.18s var(--ease);
+        box-shadow: var(--shadow-sm);
+      }
+      .toggle.on::after {
+        transform: translateX(18px);
+      }
+
+      /* ───────────── Header ───────────── */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        height: var(--header-h);
+        background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border-color);
+      }
+      .header-inner {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: var(--space-lg);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: -0.02em;
+      }
+      .brand-mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        background: linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #c4b5fd));
+        display: grid;
+        place-items: center;
+        color: #fff;
+        box-shadow: var(--shadow-sm);
+      }
+      .brand-mark svg {
+        width: 17px;
+        height: 17px;
+      }
+      .nav {
+        display: flex;
+        gap: 2px;
+        margin-left: var(--space-md);
+      }
+      .nav button {
+        font: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: transparent;
+        border: none;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .nav button:hover {
+        color: var(--text-primary);
+        background: var(--bg-hover);
+      }
+      .nav button.active {
+        color: var(--text-primary);
+        background: var(--bg-inset);
+      }
+      .header-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .icon-btn:hover {
+        color: var(--text-primary);
+        background: var(--bg-hover);
+      }
+      .icon-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* avatar + menu */
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .menu-wrap {
+        position: relative;
+      }
+      .menu {
+        position: absolute;
+        right: 0;
+        top: 46px;
+        width: 230px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        padding: 6px;
+        z-index: 60;
+      }
+      .menu-head {
+        padding: 10px 10px 12px;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 6px;
+      }
+      .menu-name {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .menu-mail {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        font: inherit;
+        font-size: 14px;
+        color: var(--text-primary);
+        background: transparent;
+        border: none;
+        padding: 9px 10px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        text-align: left;
+      }
+      .menu-item:hover {
+        background: var(--bg-hover);
+      }
+      .menu-item svg {
+        width: 16px;
+        height: 16px;
+        color: var(--text-tertiary);
+      }
+
+      /* ───────────── Layout / page ───────────── */
+      .page {
+        padding: var(--space-2xl) 0 var(--space-2xl);
+      }
+      .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-md);
+        margin-bottom: var(--space-xl);
+        flex-wrap: wrap;
+      }
+      .page-title {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .page-sub {
+        color: var(--text-secondary);
+        margin-top: 4px;
+        font-size: 15px;
+      }
+      .grid {
+        display: grid;
+        gap: var(--space-md);
+      }
+      .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      /* stat cards */
+      .stat {
+        padding: var(--space-lg);
+      }
+      .stat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .stat-label svg {
+        width: 16px;
+        height: 16px;
+        color: var(--accent);
+      }
+      .stat-value {
+        font-size: 34px;
+        font-weight: 700;
+        margin-top: 10px;
+        letter-spacing: -0.03em;
+      }
+      .stat-hint {
+        font-size: 13px;
+        color: var(--text-tertiary);
+        margin-top: 4px;
+      }
+
+      /* section heading */
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: var(--space-md);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      /* booking list rows */
+      .blist {
+        display: flex;
+        flex-direction: column;
+      }
+      .brow {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        padding: 14px var(--space-lg);
+        border-top: 1px solid var(--border-color);
+      }
+      .brow:first-child {
+        border-top: none;
+      }
+      .brow-time {
+        width: 132px;
+        flex-shrink: 0;
+      }
+      .brow-time .d {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .brow-time .t {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-variant-numeric: tabular-nums;
+      }
+      .brow-main {
+        flex: 1;
+        min-width: 0;
+      }
+      .brow-main .r {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .brow-main .u {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .brow-actions {
+        margin-left: auto;
+      }
+      .badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        text-transform: capitalize;
+      }
+      .badge.confirmed {
+        color: var(--success);
+        background: var(--success-soft);
+      }
+      .badge.cancelled {
+        color: var(--text-tertiary);
+        background: var(--bg-inset);
+      }
+      .badge.past {
+        color: var(--text-secondary);
+        background: var(--bg-inset);
+      }
+
+      /* resource cards */
+      .res-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--space-md);
+      }
+      .res-card {
+        padding: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: transform 0.18s var(--ease), border-color 0.18s;
+      }
+      .res-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-md);
+      }
+      .res-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .res-name {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .res-cap {
+        font-size: 13px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .res-cap svg {
+        width: 15px;
+        height: 15px;
+      }
+      .res-desc {
+        font-size: 14px;
+        color: var(--text-secondary);
+        flex: 1;
+      }
+      .avail {
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--success);
+      }
+      .avail .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+      }
+      .avail.busy {
+        color: var(--warning);
+      }
+      .avail.busy .dot {
+        background: var(--warning);
+      }
+
+      /* ───────────── Calendar ───────────── */
+      .cal-toolbar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-md);
+        flex-wrap: wrap;
+      }
+      .cal-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .seg {
+        display: inline-flex;
+        background: var(--bg-inset);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 3px;
+        gap: 2px;
+      }
+      .seg button {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 5px 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .seg button.active {
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        box-shadow: var(--shadow-sm);
+      }
+      .cal-title {
+        font-size: 16px;
+        font-weight: 600;
+        min-width: 180px;
+      }
+
+      /* week/day time grid */
+      .grid-cal {
+        display: grid;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: var(--bg-elevated);
+      }
+      .gutter-col {
+        border-right: 1px solid var(--border-color);
+      }
+      .gc-head {
+        height: 52px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .gc-slot {
+        height: 44px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 11px;
+        color: var(--text-tertiary);
+        padding: 2px 8px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .day-col {
+        border-right: 1px solid var(--border-color);
+      }
+      .day-col:last-child {
+        border-right: none;
+      }
+      .day-head {
+        height: 52px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+      }
+      .day-head .dow {
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .day-head .dnum {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .day-head.today .dnum {
+        color: var(--accent-contrast);
+        background: var(--accent);
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+      }
+      .slot {
+        height: 44px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        position: relative;
+        transition: background 0.12s;
+      }
+      .slot:hover.free {
+        background: var(--accent-soft);
+      }
+      .slot.free::after {
+        content: "+";
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        font-size: 16px;
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      .slot:hover.free::after {
+        opacity: 1;
+      }
+      .slot.booked {
+        cursor: default;
+        background: repeating-linear-gradient(
+          45deg,
+          var(--bg-inset),
+          var(--bg-inset) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+      }
+      .slot.mine {
+        cursor: default;
+        background: var(--accent-soft);
+      }
+      .slot.disabled {
+        cursor: default;
+        background: var(--bg-secondary);
+        opacity: 0.5;
+      }
+      .slot-label {
+        position: absolute;
+        inset: 2px 4px;
+        border-radius: 6px;
+        background: var(--accent);
+        color: var(--accent-contrast);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 6px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+      }
+      .slot.booked .slot-label {
+        background: var(--bg-hover);
+        color: var(--text-secondary);
+      }
+
+      /* month grid */
+      .month {
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: var(--bg-elevated);
+      }
+      .month-dow {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        border-bottom: 1px solid var(--border-color);
+      }
+      .month-dow span {
+        padding: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .month-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+      }
+      .mcell {
+        min-height: 96px;
+        border-right: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 8px;
+        cursor: pointer;
+        transition: background 0.12s;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .mcell:hover {
+        background: var(--bg-hover);
+      }
+      .mcell:nth-child(7n) {
+        border-right: none;
+      }
+      .mcell.dim {
+        background: var(--bg-secondary);
+        color: var(--text-tertiary);
+      }
+      .mcell .mnum {
+        font-size: 13px;
+        font-weight: 600;
+        align-self: flex-start;
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+      }
+      .mcell.today .mnum {
+        background: var(--accent);
+        color: var(--accent-contrast);
+      }
+      .mpill {
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-radius: 5px;
+        padding: 2px 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ───────────── Modal ───────────── */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(8, 10, 16, 0.55);
+        backdrop-filter: blur(4px);
+        display: grid;
+        place-items: center;
+        padding: var(--space-md);
+        animation: fade 0.18s var(--ease);
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+      }
+      .modal {
+        width: 100%;
+        max-width: 440px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: pop 0.2s var(--ease);
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.98);
+        }
+      }
+      .modal-head {
+        padding: var(--space-lg) var(--space-lg) var(--space-md);
+        border-bottom: 1px solid var(--border-color);
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .modal-body {
+        padding: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+      }
+      .summary {
+        background: var(--bg-inset);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .srow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+      }
+      .srow svg {
+        width: 16px;
+        height: 16px;
+        color: var(--text-tertiary);
+        flex-shrink: 0;
+      }
+      .srow b {
+        font-weight: 600;
+      }
+      .modal-foot {
+        padding: var(--space-md) var(--space-lg) var(--space-lg);
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      /* ───────────── Toasts ───────────── */
+      .toasts {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 360px;
+      }
+      .toast {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-left: 3px solid var(--accent);
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        box-shadow: var(--shadow-lg);
+        font-size: 14px;
+        animation: slidein 0.22s var(--ease);
+      }
+      @keyframes slidein {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+      }
+      .toast.success {
+        border-left-color: var(--success);
+      }
+      .toast.error {
+        border-left-color: var(--danger);
+      }
+      .toast svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+      .toast.success svg {
+        color: var(--success);
+      }
+      .toast.error svg {
+        color: var(--danger);
+      }
+
+      /* ───────────── Skeleton / empty ───────────── */
+      .skel {
+        background: linear-gradient(
+          90deg,
+          var(--bg-inset) 25%,
+          var(--bg-hover) 37%,
+          var(--bg-inset) 63%
+        );
+        background-size: 400% 100%;
+        animation: shimmer 1.3s ease infinite;
+        border-radius: var(--radius-sm);
+      }
+      @keyframes shimmer {
+        from {
+          background-position: 100% 0;
+        }
+        to {
+          background-position: -100% 0;
+        }
+      }
+      .empty {
+        text-align: center;
+        padding: var(--space-2xl) var(--space-lg);
+        color: var(--text-secondary);
+      }
+      .empty svg {
+        width: 40px;
+        height: 40px;
+        color: var(--text-tertiary);
+        margin-bottom: var(--space-md);
+      }
+      .empty h4 {
+        font-size: 16px;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+      }
+      .empty p {
+        font-size: 14px;
+        margin-bottom: var(--space-md);
+      }
+
+      /* ───────────── Landing ───────────── */
+      .landing {
+        position: relative;
+        overflow: hidden;
+      }
+      .landing-glow {
+        position: absolute;
+        width: 700px;
+        height: 500px;
+        left: 50%;
+        top: -160px;
+        transform: translateX(-50%);
+        background: radial-gradient(ellipse, var(--accent-soft), transparent 65%);
+        filter: blur(40px);
+        pointer-events: none;
+      }
+      .hero {
+        text-align: center;
+        padding: var(--space-2xl) 0;
+        position: relative;
+      }
+      .hero .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        padding: 6px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 999px;
+        background: var(--bg-elevated);
+      }
+      .hero h1 {
+        font-size: clamp(36px, 6vw, 60px);
+        font-weight: 800;
+        margin: var(--space-lg) auto 0;
+        max-width: 16ch;
+      }
+      .hero p {
+        font-size: 18px;
+        color: var(--text-secondary);
+        max-width: 540px;
+        margin: var(--space-md) auto 0;
+      }
+      .hero-cta {
+        margin-top: var(--space-xl);
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-md);
+        margin-top: var(--space-2xl);
+        padding-bottom: var(--space-2xl);
+      }
+      .feature {
+        padding: var(--space-lg);
+      }
+      .feature-ic {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        margin-bottom: var(--space-md);
+      }
+      .feature-ic svg {
+        width: 20px;
+        height: 20px;
+      }
+      .feature h3 {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+      .feature p {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      /* splash */
+      .splash {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ───────────── Responsive ───────────── */
+      @media (max-width: 860px) {
+        .nav {
+          display: none;
+        }
+        .grid-3,
+        .features {
+          grid-template-columns: 1fr;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        .brow-time {
+          width: 96px;
+        }
+        .cal-title {
+          min-width: 120px;
+          font-size: 14px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="splash"><div class="spinner"></div></div>
     </div>
-  </header><main></main><footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-grid">
-        <div class="stack">
-          <a class="brand" href="index.html" aria-label="Nordisk Klinikhälsa startsida">
-            <span class="brand-mark" aria-hidden="true">+</span>
-            <span class="brand-text">
-              <span class="brand-name">Nordisk Klinikhälsa</span>
-              <span class="brand-subtitle">Specialistklinik</span>
-            </span>
-          </a>
-          <p>Modern, personlig och trygg specialistvård i en premium klinikmiljö i centrala Stockholm.</p>
-        </div>
 
-        <div class="stack">
-          <h3 class="text-base">Sidor</h3>
-          <a class="footer-link" href="index.html">Start</a>
-          <a class="footer-link" href="behandling.html">Behandling</a>
-          <a class="footer-link" href="kontakt.html">Kontakt</a>
-        </div>
+    <script type="text/babel">
+      const { useState, useEffect, useMemo, useRef, useCallback, createContext, useContext } = React;
 
-        <div class="stack">
-          <h3 class="text-base">Kontakt</h3>
-          <a class="footer-link" href="tel:+4681234567">08-123 45 67</a>
-          <a class="footer-link" href="mailto:kontakt@nordiskklinikhalsa.se">kontakt@nordiskklinikhalsa.se</a>
-          <a class="footer-link" href="kontakt.html">Boka konsultation</a>
-        </div>
+      /* ════════════════ Config ════════════════ */
+      const PROJECT_ID = 427; // ← set to your Klar project id
+      const KLAR_HOST = "https://editor.klar.website";
 
-        <div class="stack">
-          <h3 class="text-base">Besök</h3>
-          <p>Birger Jarlsgatan 22<br>114 34 Stockholm</p>
-          <p>Mån–tor 08.00–17.00<br>Fre 08.00–15.00</p>
-        </div>
-      </div>
+      const RESOURCES = [
+        { id: "room-a", name: "Conference Room A", capacity: 8, description: "Large meeting room with display and whiteboard." },
+        { id: "room-b", name: "Conference Room B", capacity: 12, description: "Executive board room, video-ready." },
+        { id: "room-c", name: "Workshop Space", capacity: 20, description: "Flexible collaboration area with movable furniture." },
+        { id: "focus-1", name: "Focus Pod 1", capacity: 2, description: "Quiet pod for calls and deep work." },
+        { id: "focus-2", name: "Focus Pod 2", capacity: 2, description: "Quiet pod for calls and deep work." },
+      ];
+      const RES_BY_ID = Object.fromEntries(RESOURCES.map((r) => [r.id, r]));
 
-      <div class="footer-bottom">
-        <span>© 2026 Nordisk Klinikhälsa. Alla rättigheter förbehållna.</span>
-        <span>Integritet · Tillgänglighet · Kvalitet</span>
-      </div>
-    </div>
-  </footer><script src="script.js"></script></body></html>
+      const BUSINESS_START = 8; // 08:00
+      const BUSINESS_END = 20; // 20:00
+      const SLOT_MIN = 30;
+
+      /* ════════════════ Pure helpers ════════════════ */
+      function hasOverlap(startA, endA, startB, endB) {
+        return startA < endB && endA > startB; // timestamps
+      }
+      function genId() {
+        return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+      }
+      const pad = (n) => String(n).padStart(2, "0");
+      function addMinutes(d, m) { return new Date(d.getTime() + m * 60000); }
+      function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+      function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+      function startOfWeek(d) {
+        const x = startOfDay(d);
+        const day = (x.getDay() + 6) % 7; // Monday = 0
+        return addDays(x, -day);
+      }
+      function isSameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      }
+      const isToday = (d) => isSameDay(d, new Date());
+      function fmtTime(d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+      function fmtDay(d) {
+        return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      }
+      function fmtMonth(d) {
+        return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+      }
+      function slotsForDay(day) {
+        const out = [];
+        let t = new Date(day); t.setHours(BUSINESS_START, 0, 0, 0);
+        const end = new Date(day); end.setHours(BUSINESS_END, 0, 0, 0);
+        while (t < end) {
+          const s = new Date(t);
+          out.push({ start: s, end: addMinutes(s, SLOT_MIN) });
+          t = addMinutes(t, SLOT_MIN);
+        }
+        return out;
+      }
+
+      /* ════════════════ Service layer ════════════════
+         The ONLY place that touches storage. Components never read
+         localStorage or user.data directly. Swap these internals for a real
+         backend later without changing any UI code. */
+
+      // 1) Shared booking storage — localStorage (simulated shared backend)
+      const KEY_INDEX = "global_bookings";
+      const bookingKey = (id) => "global_booking_" + id;
+
+      const BookingStore = {
+        _index() {
+          try { return JSON.parse(localStorage.getItem(KEY_INDEX) || "[]"); } catch { return []; }
+        },
+        _writeIndex(ids) { localStorage.setItem(KEY_INDEX, JSON.stringify(ids)); },
+        getBooking(id) {
+          try { const r = localStorage.getItem(bookingKey(id)); return r ? JSON.parse(r) : null; } catch { return null; }
+        },
+        getAllBookings() {
+          return this._index().map((id) => this.getBooking(id)).filter(Boolean);
+        },
+        getBookingsForResource(resourceId) {
+          return this.getAllBookings().filter((b) => b.resourceId === resourceId && b.status === "confirmed");
+        },
+        getBookingsForUser(userId) {
+          return this.getAllBookings().filter((b) => b.userId === userId);
+        },
+        createBooking(data) {
+          const start = new Date(data.start).getTime();
+          const end = new Date(data.end).getTime();
+          if (!(end > start)) throw new Error("End must be after start.");
+          if (start < Date.now()) throw new Error("Can't book a time in the past.");
+          const clash = this.getBookingsForResource(data.resourceId).some((b) =>
+            hasOverlap(start, end, new Date(b.start).getTime(), new Date(b.end).getTime())
+          );
+          if (clash) throw new Error("That time overlaps an existing booking.");
+          const rec = {
+            id: genId(),
+            status: "confirmed",
+            createdAt: new Date().toISOString(),
+            ...data,
+          };
+          localStorage.setItem(bookingKey(rec.id), JSON.stringify(rec));
+          const idx = this._index(); idx.push(rec.id); this._writeIndex(idx);
+          return rec;
+        },
+        cancelBooking(id) {
+          const b = this.getBooking(id);
+          if (!b) return null;
+          b.status = "cancelled";
+          localStorage.setItem(bookingKey(id), JSON.stringify(b));
+          return b;
+        },
+        updateBooking(id, updates) {
+          const b = this.getBooking(id);
+          if (!b) return null;
+          const next = { ...b, ...updates };
+          localStorage.setItem(bookingKey(id), JSON.stringify(next));
+          return next;
+        },
+      };
+
+      // 2) Per-user settings — Klar user storage
+      const DEFAULT_SETTINGS = { theme: "dark", timezone: "Europe/Stockholm", notifications: true };
+      const TIMEZONES = [
+        "Europe/Stockholm", "Europe/London", "Europe/Berlin",
+        "America/New_York", "America/Los_Angeles", "Asia/Tokyo", "UTC",
+      ];
+
+      const UserSettingsStore = {
+        _user: null,
+        setUser(u) { this._user = u; },
+        async getSettings() {
+          if (!this._user) return { ...DEFAULT_SETTINGS };
+          try {
+            const s = await this._user.data.get("settings");
+            return { ...DEFAULT_SETTINGS, ...(s || {}) };
+          } catch { return { ...DEFAULT_SETTINGS }; }
+        },
+        async saveSettings(settings) {
+          if (!this._user) return;
+          await this._user.data.set("settings", settings);
+        },
+      };
+
+      /* ════════════════ Icons ════════════════ */
+      const I = {
+        plus: <path d="M12 5v14M5 12h14" />,
+        cal: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
+        clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+        users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+        grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></>,
+        check: <path d="M20 6 9 17l-5-5" />,
+        x: <path d="M18 6 6 18M6 6l12 12" />,
+        sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
+        moon: <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />,
+        settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" /></>,
+        logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></>,
+        chevL: <path d="m15 18-6-6 6-6" />,
+        chevR: <path d="m9 18 6-6-6-6" />,
+        bolt: <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" />,
+        search: <><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></>,
+        spark: <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" />,
+        shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />,
+      };
+      function Icon({ name, ...rest }) {
+        return (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...rest}>
+            {I[name]}
+          </svg>
+        );
+      }
+
+      /* ════════════════ Toasts ════════════════ */
+      const ToastCtx = createContext(() => {});
+      const useToast = () => useContext(ToastCtx);
+
+      function ToastProvider({ children }) {
+        const [toasts, setToasts] = useState([]);
+        const add = useCallback((message, type = "info") => {
+          const id = genId();
+          setToasts((t) => [...t, { id, message, type }]);
+          setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3800);
+        }, []);
+        return (
+          <ToastCtx.Provider value={add}>
+            {children}
+            <div className="toasts">
+              {toasts.map((t) => (
+                <div key={t.id} className={"toast " + t.type}>
+                  {t.type === "success" && <Icon name="check" />}
+                  {t.type === "error" && <Icon name="x" />}
+                  <span>{t.message}</span>
+                </div>
+              ))}
+            </div>
+          </ToastCtx.Provider>
+        );
+      }
+
+      /* ════════════════ Small UI ════════════════ */
+      function Avatar({ user, onClick }) {
+        const initials = (user?.name || user?.email || "?")
+          .split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+        if (user?.picture) return <img className="avatar" src={user.picture} alt="" onClick={onClick} referrerPolicy="no-referrer" />;
+        return <div className="avatar" onClick={onClick}>{initials}</div>;
+      }
+
+      function EmptyState({ icon, title, text, action }) {
+        return (
+          <div className="empty">
+            <Icon name={icon} />
+            <h4>{title}</h4>
+            <p>{text}</p>
+            {action}
+          </div>
+        );
+      }
+
+      function SkeletonRows({ n = 3 }) {
+        return (
+          <div className="card">
+            {Array.from({ length: n }).map((_, i) => (
+              <div className="brow" key={i}>
+                <div className="skel" style={{ width: 110, height: 34 }} />
+                <div style={{ flex: 1 }}>
+                  <div className="skel" style={{ width: "40%", height: 14, marginBottom: 7 }} />
+                  <div className="skel" style={{ width: "25%", height: 12 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      /* ════════════════ Header ════════════════ */
+      function Header({ view, setView, user, theme, toggleTheme, onSignOut }) {
+        const [menu, setMenu] = useState(false);
+        const ref = useRef(null);
+        useEffect(() => {
+          const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setMenu(false); };
+          document.addEventListener("mousedown", h);
+          return () => document.removeEventListener("mousedown", h);
+        }, []);
+        const nav = [
+          ["dashboard", "Dashboard"],
+          ["resources", "Resources"],
+          ["bookings", "My Bookings"],
+          ["settings", "Settings"],
+        ];
+        return (
+          <header className="header">
+            <div className="container header-inner">
+              <div className="brand">
+                <span className="brand-mark"><Icon name="cal" /></span>
+                Slate
+              </div>
+              {user && (
+                <nav className="nav">
+                  {nav.map(([k, label]) => (
+                    <button key={k} className={view === k ? "active" : ""} onClick={() => setView(k)}>
+                      {label}
+                    </button>
+                  ))}
+                </nav>
+              )}
+              <div className="header-right">
+                <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
+                  <Icon name={theme === "dark" ? "sun" : "moon"} />
+                </button>
+                {user && (
+                  <div className="menu-wrap" ref={ref}>
+                    <Avatar user={user} onClick={() => setMenu((m) => !m)} />
+                    {menu && (
+                      <div className="menu">
+                        <div className="menu-head">
+                          <div className="menu-name">{user.name || "Signed in"}</div>
+                          <div className="menu-mail">{user.email}</div>
+                        </div>
+                        <button className="menu-item" onClick={() => { setView("settings"); setMenu(false); }}>
+                          <Icon name="settings" /> Settings
+                        </button>
+                        <button className="menu-item" onClick={() => { setMenu(false); onSignOut(); }}>
+                          <Icon name="logout" /> Sign out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+        );
+      }
+
+      /* ════════════════ Landing ════════════════ */
+      function Landing({ onSignIn, signingIn }) {
+        const feats = [
+          ["bolt", "Book in seconds", "Pick a room, pick a slot, done. No back-and-forth, no double-bookings."],
+          ["shield", "Conflict-free", "Availability is checked the moment you book — overlaps are impossible."],
+          ["spark", "Beautifully simple", "A fast, focused interface that gets out of your way."],
+        ];
+        return (
+          <div className="landing">
+            <div className="landing-glow" />
+            <div className="container">
+              <section className="hero">
+                <span className="eyebrow"><Icon name="cal" style={{ width: 14, height: 14 }} /> Resource booking</span>
+                <h1>Book rooms and spaces, without the chaos</h1>
+                <p>Slate is a calm, fast booking platform for your team's rooms, pods, and shared spaces. See what's free, grab it, move on.</p>
+                <div className="hero-cta">
+                  <button className="btn btn-primary btn-lg" onClick={onSignIn} disabled={signingIn}>
+                    {signingIn ? "Opening…" : "Sign in with Google"}
+                  </button>
+                </div>
+                <p className="tiny" style={{ marginTop: 14 }}>Sign-in is handled securely by Klar — no setup required.</p>
+              </section>
+              <section className="features">
+                {feats.map(([ic, t, d]) => (
+                  <div className="card feature" key={t}>
+                    <div className="feature-ic"><Icon name={ic} /></div>
+                    <h3>{t}</h3>
+                    <p>{d}</p>
+                  </div>
+                ))}
+              </section>
+            </div>
+          </div>
+        );
+      }
+
+      /* ════════════════ Dashboard ════════════════ */
+      function Dashboard({ me, bookings, loading, setView, onBook }) {
+        const now = Date.now();
+        const mine = bookings.filter((b) => b.userId === me.sub);
+        const upcoming = mine
+          .filter((b) => b.status === "confirmed" && new Date(b.end).getTime() >= now)
+          .sort((a, b) => new Date(a.start) - new Date(b.start));
+        const todayCount = upcoming.filter((b) => isSameDay(new Date(b.start), new Date())).length;
+
+        return (
+          <div className="container page">
+            <div className="page-head">
+              <div>
+                <div className="page-title">Welcome back, {(me.name || "there").split(" ")[0]}</div>
+                <div className="page-sub">Here's what's on your calendar.</div>
+              </div>
+              <button className="btn btn-primary" onClick={() => setView("resources")}>
+                <Icon name="plus" /> New booking
+              </button>
+            </div>
+
+            <div className="grid grid-3" style={{ marginBottom: 32 }}>
+              <div className="card stat">
+                <div className="stat-label"><Icon name="cal" /> Upcoming</div>
+                <div className="stat-value">{upcoming.length}</div>
+                <div className="stat-hint">confirmed bookings ahead</div>
+              </div>
+              <div className="card stat">
+                <div className="stat-label"><Icon name="clock" /> Today</div>
+                <div className="stat-value">{todayCount}</div>
+                <div className="stat-hint">{todayCount === 1 ? "booking today" : "bookings today"}</div>
+              </div>
+              <div className="card stat">
+                <div className="stat-label"><Icon name="grid" /> Resources</div>
+                <div className="stat-value">{RESOURCES.length}</div>
+                <div className="stat-hint">spaces available to book</div>
+              </div>
+            </div>
+
+            <div className="section-title">
+              Upcoming bookings
+              <button className="btn btn-ghost btn-sm" onClick={() => setView("bookings")}>View all</button>
+            </div>
+            {loading ? (
+              <SkeletonRows />
+            ) : upcoming.length === 0 ? (
+              <div className="card">
+                <EmptyState
+                  icon="cal"
+                  title="Nothing booked yet"
+                  text="Browse the available spaces and grab a slot."
+                  action={<button className="btn btn-primary" onClick={() => setView("resources")}>Browse resources</button>}
+                />
+              </div>
+            ) : (
+              <div className="card blist">
+                {upcoming.slice(0, 5).map((b) => (
+                  <BookingRow key={b.id} b={b} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function BookingRow({ b, onCancel, past }) {
+        const s = new Date(b.start), e = new Date(b.end);
+        return (
+          <div className="brow">
+            <div className="brow-time">
+              <div className="d">{fmtDay(s)}</div>
+              <div className="t">{fmtTime(s)}–{fmtTime(e)}</div>
+            </div>
+            <div className="brow-main">
+              <div className="r">{b.resourceName}</div>
+              <div className="u">{b.userName}</div>
+            </div>
+            <div className="brow-actions" style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <span className={"badge " + (b.status === "cancelled" ? "cancelled" : past ? "past" : "confirmed")}>
+                {b.status === "cancelled" ? "cancelled" : past ? "past" : "confirmed"}
+              </span>
+              {onCancel && b.status === "confirmed" && !past && (
+                <button className="btn btn-danger btn-sm" onClick={() => onCancel(b)}>Cancel</button>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      /* ════════════════ Resource browser ════════════════ */
+      function ResourceBrowser({ bookings, onPick }) {
+        const [q, setQ] = useState("");
+        const now = Date.now();
+        const list = RESOURCES.filter((r) =>
+          (r.name + " " + r.description).toLowerCase().includes(q.toLowerCase())
+        );
+        const freeNow = (rid) =>
+          !bookings.some(
+            (b) => b.resourceId === rid && b.status === "confirmed" &&
+              new Date(b.start).getTime() <= now && new Date(b.end).getTime() > now
+          );
+        return (
+          <div className="container page">
+            <div className="page-head">
+              <div>
+                <div className="page-title">Resources</div>
+                <div className="page-sub">Pick a space to see its availability.</div>
+              </div>
+              <div className="field" style={{ width: 260 }}>
+                <div style={{ position: "relative" }}>
+                  <Icon name="search" style={{ position: "absolute", left: 12, top: 11, width: 16, height: 16, color: "var(--text-tertiary)" }} />
+                  <input
+                    className="input"
+                    style={{ paddingLeft: 36 }}
+                    placeholder="Search spaces…"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            {list.length === 0 ? (
+              <div className="card"><EmptyState icon="search" title="No matches" text="Try a different search." /></div>
+            ) : (
+              <div className="res-grid">
+                {list.map((r) => {
+                  const free = freeNow(r.id);
+                  return (
+                    <div className="card res-card" key={r.id}>
+                      <div className="res-top">
+                        <div className="res-name">{r.name}</div>
+                        <div className={"avail" + (free ? "" : " busy")}>
+                          <span className="dot" />{free ? "Free now" : "In use"}
+                        </div>
+                      </div>
+                      <div className="res-cap"><Icon name="users" /> Up to {r.capacity} people</div>
+                      <div className="res-desc">{r.description}</div>
+                      <button className="btn btn-secondary btn-block" onClick={() => onPick(r)}>
+                        <Icon name="cal" /> View availability
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      /* ════════════════ Calendar ════════════════ */
+      function Calendar({ resource, bookings, me, onSlot, onBack }) {
+        const [vmode, setVmode] = useState("week");
+        const [cursor, setCursor] = useState(() => startOfDay(new Date()));
+
+        const resBookings = useMemo(
+          () => bookings.filter((b) => b.resourceId === resource.id && b.status === "confirmed"),
+          [bookings, resource.id]
+        );
+
+        const step = (dir) => {
+          if (vmode === "month") { const x = new Date(cursor); x.setMonth(x.getMonth() + dir); setCursor(startOfDay(x)); }
+          else if (vmode === "week") setCursor(addDays(cursor, dir * 7));
+          else setCursor(addDays(cursor, dir));
+        };
+
+        const title = vmode === "month" ? fmtMonth(cursor)
+          : vmode === "week" ? (() => { const s = startOfWeek(cursor); return fmtDay(s) + " – " + fmtDay(addDays(s, 6)); })()
+          : fmtDay(cursor);
+
+        return (
+          <div className="container page">
+            <div className="page-head">
+              <div>
+                <button className="btn btn-ghost btn-sm" onClick={onBack} style={{ marginBottom: 8, marginLeft: -8 }}>
+                  <Icon name="chevL" /> Resources
+                </button>
+                <div className="page-title">{resource.name}</div>
+                <div className="page-sub">{resource.description} · up to {resource.capacity} people</div>
+              </div>
+            </div>
+
+            <div className="cal-toolbar">
+              <div className="cal-nav">
+                <button className="icon-btn" onClick={() => step(-1)}><Icon name="chevL" /></button>
+                <button className="icon-btn" onClick={() => step(1)}><Icon name="chevR" /></button>
+                <button className="btn btn-secondary btn-sm" onClick={() => setCursor(startOfDay(new Date()))}>Today</button>
+              </div>
+              <div className="cal-title">{title}</div>
+              <div className="seg" style={{ marginLeft: "auto" }}>
+                {["month", "week", "day"].map((m) => (
+                  <button key={m} className={vmode === m ? "active" : ""} onClick={() => setVmode(m)}>
+                    {m[0].toUpperCase() + m.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {vmode === "month" && (
+              <MonthView cursor={cursor} bookings={resBookings} onDay={(d) => { setCursor(startOfDay(d)); setVmode("day"); }} />
+            )}
+            {vmode === "week" && (
+              <TimeGrid days={Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(cursor), i))} bookings={resBookings} me={me} resource={resource} onSlot={onSlot} />
+            )}
+            {vmode === "day" && (
+              <TimeGrid days={[cursor]} bookings={resBookings} me={me} resource={resource} onSlot={onSlot} />
+            )}
+          </div>
+        );
+      }
+
+      function TimeGrid({ days, bookings, me, resource, onSlot }) {
+        const times = slotsForDay(days[0]).map((s) => s.start);
+        const now = Date.now();
+        const colW = days.length === 1 ? "1fr" : "repeat(" + days.length + ", 1fr)";
+
+        const slotState = (day, t) => {
+          const start = new Date(day); start.setHours(t.getHours(), t.getMinutes(), 0, 0);
+          const end = addMinutes(start, SLOT_MIN);
+          if (start.getTime() < now) return { kind: "disabled", start, end };
+          const hit = bookings.find((b) =>
+            hasOverlap(start.getTime(), end.getTime(), new Date(b.start).getTime(), new Date(b.end).getTime())
+          );
+          if (hit) return { kind: hit.userId === me.sub ? "mine" : "booked", start, end, hit };
+          return { kind: "free", start, end };
+        };
+
+        return (
+          <div className="grid-cal" style={{ gridTemplateColumns: "64px " + colW }}>
+            {/* gutter */}
+            <div className="gutter-col">
+              <div className="gc-head" />
+              {times.map((t, i) => (
+                <div className="gc-slot" key={i}>{t.getMinutes() === 0 ? fmtTime(t) : ""}</div>
+              ))}
+            </div>
+            {/* day columns */}
+            {days.map((day, di) => (
+              <div className="day-col" key={di}>
+                <div className={"day-head" + (isToday(day) ? " today" : "")}>
+                  <span className="dow">{day.toLocaleDateString(undefined, { weekday: "short" })}</span>
+                  <span className="dnum">{day.getDate()}</span>
+                </div>
+                {times.map((t, i) => {
+                  const st = slotState(day, t);
+                  return (
+                    <div
+                      key={i}
+                      className={"slot " + st.kind}
+                      title={st.kind === "free" ? "Book " + fmtTime(st.start) : st.kind === "mine" ? "Your booking" : st.kind === "booked" ? "Booked" : ""}
+                      onClick={() => st.kind === "free" && onSlot({ resource, start: st.start })}
+                    >
+                      {st.kind === "mine" && <div className="slot-label">You</div>}
+                      {st.kind === "booked" && t.getMinutes() === 0 && <div className="slot-label">Booked</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      function MonthView({ cursor, bookings, onDay }) {
+        const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+        const startGrid = startOfWeek(first);
+        const cells = Array.from({ length: 42 }, (_, i) => addDays(startGrid, i));
+        const countFor = (d) => bookings.filter((b) => isSameDay(new Date(b.start), d)).length;
+        const dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        return (
+          <div className="month">
+            <div className="month-dow">{dows.map((d) => <span key={d}>{d}</span>)}</div>
+            <div className="month-grid">
+              {cells.map((d, i) => {
+                const dim = d.getMonth() !== cursor.getMonth();
+                const c = countFor(d);
+                return (
+                  <div className={"mcell" + (dim ? " dim" : "") + (isToday(d) ? " today" : "")} key={i} onClick={() => onDay(d)}>
+                    <span className="mnum">{d.getDate()}</span>
+                    {c > 0 && <span className="mpill">{c} booked</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      /* ════════════════ Booking modal ════════════════ */
+      function BookingModal({ ctx, me, onClose, onConfirm }) {
+        const [dur, setDur] = useState(30);
+        const [busy, setBusy] = useState(false);
+        const start = ctx.start;
+        const end = addMinutes(start, dur);
+        const confirm = async () => {
+          setBusy(true);
+          await onConfirm({
+            resourceId: ctx.resource.id,
+            resourceName: ctx.resource.name,
+            userId: me.sub,
+            userName: me.name || me.email || "User",
+            start: start.toISOString(),
+            end: end.toISOString(),
+          });
+          setBusy(false);
+        };
+        return (
+          <div className="overlay" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-head">
+                <div className="modal-title">Confirm booking</div>
+              </div>
+              <div className="modal-body">
+                <div className="summary">
+                  <div className="srow"><Icon name="grid" /> <b>{ctx.resource.name}</b></div>
+                  <div className="srow"><Icon name="cal" /> {fmtDay(start)}</div>
+                  <div className="srow"><Icon name="clock" /> {fmtTime(start)} – {fmtTime(end)}</div>
+                  <div className="srow"><Icon name="users" /> {ctx.resource.capacity} people max</div>
+                </div>
+                <div className="field">
+                  <label className="label">Duration</label>
+                  <select className="select" value={dur} onChange={(e) => setDur(Number(e.target.value))}>
+                    <option value={30}>30 minutes</option>
+                    <option value={60}>1 hour</option>
+                    <option value={90}>1.5 hours</option>
+                    <option value={120}>2 hours</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-foot">
+                <button className="btn btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>
+                <button className="btn btn-primary" onClick={confirm} disabled={busy}>
+                  {busy ? "Booking…" : "Confirm booking"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      /* ════════════════ My bookings ════════════════ */
+      function MyBookings({ me, bookings, loading, onCancel, setView }) {
+        const now = Date.now();
+        const mine = bookings.filter((b) => b.userId === me.sub);
+        const upcoming = mine
+          .filter((b) => b.status === "confirmed" && new Date(b.end).getTime() >= now)
+          .sort((a, b) => new Date(a.start) - new Date(b.start));
+        const past = mine
+          .filter((b) => b.status !== "confirmed" || new Date(b.end).getTime() < now)
+          .sort((a, b) => new Date(b.start) - new Date(a.start));
+
+        return (
+          <div className="container page">
+            <div className="page-head">
+              <div>
+                <div className="page-title">My bookings</div>
+                <div className="page-sub">Everything you've reserved.</div>
+              </div>
+              <button className="btn btn-primary" onClick={() => setView("resources")}><Icon name="plus" /> New booking</button>
+            </div>
+
+            <div className="section-title">Upcoming</div>
+            {loading ? <SkeletonRows /> : upcoming.length === 0 ? (
+              <div className="card"><EmptyState icon="cal" title="No upcoming bookings" text="Book a space to see it here."
+                action={<button className="btn btn-primary" onClick={() => setView("resources")}>Browse resources</button>} /></div>
+            ) : (
+              <div className="card blist">
+                {upcoming.map((b) => <BookingRow key={b.id} b={b} onCancel={onCancel} />)}
+              </div>
+            )}
+
+            <div className="section-title" style={{ marginTop: 32 }}>Past &amp; cancelled</div>
+            {past.length === 0 ? (
+              <div className="card"><div className="empty" style={{ padding: 28 }}><p className="muted">Nothing here yet.</p></div></div>
+            ) : (
+              <div className="card blist">
+                {past.map((b) => <BookingRow key={b.id} b={b} past />)}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      /* ════════════════ Settings ════════════════ */
+      function Settings({ settings, onSave, theme, setTheme }) {
+        const [local, setLocal] = useState(settings);
+        const [saving, setSaving] = useState(false);
+        const toast = useToast();
+        useEffect(() => setLocal(settings), [settings]);
+
+        const save = async () => {
+          setSaving(true);
+          try { await onSave(local); toast("Settings saved", "success"); }
+          catch { toast("Could not save settings", "error"); }
+          setSaving(false);
+        };
+        const setTheme2 = (t) => { setLocal((s) => ({ ...s, theme: t })); setTheme(t); };
+
+        return (
+          <div className="container page" style={{ maxWidth: 720 }}>
+            <div className="page-head">
+              <div>
+                <div className="page-title">Settings</div>
+                <div className="page-sub">Preferences are stored privately to your account.</div>
+              </div>
+            </div>
+
+            <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>Appearance</div>
+                  <div className="tiny">Choose light or dark mode.</div>
+                </div>
+                <div className="seg">
+                  <button className={local.theme === "light" ? "active" : ""} onClick={() => setTheme2("light")}>Light</button>
+                  <button className={local.theme === "dark" ? "active" : ""} onClick={() => setTheme2("dark")}>Dark</button>
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid var(--border-color)" }} />
+
+              <div className="field">
+                <label className="label">Timezone</label>
+                <select className="select" value={local.timezone} onChange={(e) => setLocal((s) => ({ ...s, timezone: e.target.value }))}>
+                  {TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz.replace("_", " ")}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>Notifications</div>
+                  <div className="tiny">Booking reminders and updates.</div>
+                </div>
+                <div className={"toggle" + (local.notifications ? " on" : "")} onClick={() => setLocal((s) => ({ ...s, notifications: !s.notifications }))} role="switch" aria-checked={local.notifications} />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      /* ════════════════ App ════════════════ */
+      function App() {
+        const toast = useToast();
+        const [authReady, setAuthReady] = useState(false);
+        const [client, setClient] = useState(null);
+        const [me, setMe] = useState(null); // signed-in profile (or null)
+        const [signingIn, setSigningIn] = useState(false);
+
+        const [view, setView] = useState("dashboard");
+        const [theme, setThemeState] = useState("dark");
+        const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+        const [bookings, setBookings] = useState([]);
+        const [loadingBookings, setLoadingBookings] = useState(true);
+        const [calResource, setCalResource] = useState(null);
+        const [modalCtx, setModalCtx] = useState(null);
+
+        const applyTheme = useCallback((t) => {
+          setThemeState(t);
+          document.documentElement.setAttribute("data-theme", t);
+        }, []);
+
+        const refreshBookings = useCallback(() => {
+          // small async wrapper so swapping to a real backend later is trivial
+          setLoadingBookings(true);
+          Promise.resolve(BookingStore.getAllBookings()).then((b) => {
+            setBookings(b);
+            setLoadingBookings(false);
+          });
+        }, []);
+
+        // Load the Klar Users SDK + wire auth lifecycle
+        useEffect(() => {
+          let unsub;
+          (async () => {
+            try {
+              const mod = await import(/* @vite-ignore */ KLAR_HOST + "/sdk/users.js");
+              const c = mod.createKlarUser({ projectId: PROJECT_ID });
+              UserSettingsStore.setUser(c);
+              setClient(c);
+              setMe(c.getUser());
+              unsub = c.onChange((u) => setMe(u || null));
+            } catch (e) {
+              console.warn("Klar Users SDK failed to load", e);
+            } finally {
+              setAuthReady(true);
+            }
+          })();
+          return () => { if (typeof unsub === "function") unsub(); };
+        }, []);
+
+        // When the signed-in user changes, load their settings + bookings
+        useEffect(() => {
+          if (!me) { applyTheme("dark"); return; }
+          let active = true;
+          (async () => {
+            const s = await UserSettingsStore.getSettings();
+            if (!active) return;
+            setSettings(s);
+            applyTheme(s.theme || "dark");
+          })();
+          refreshBookings();
+          return () => { active = false; };
+        }, [me, applyTheme, refreshBookings]);
+
+        const signIn = async () => {
+          if (!client) { toast("Sign-in is unavailable right now.", "error"); return; }
+          setSigningIn(true);
+          try { await client.signIn(); }
+          catch (e) { toast("Sign-in cancelled.", "error"); }
+          setSigningIn(false);
+        };
+        const signOut = () => { client && client.signOut(); setView("dashboard"); };
+
+        const toggleTheme = () => {
+          const next = theme === "dark" ? "light" : "dark";
+          applyTheme(next);
+          const s = { ...settings, theme: next };
+          setSettings(s);
+          UserSettingsStore.saveSettings(s).catch(() => {});
+        };
+
+        const saveSettings = async (s) => {
+          await UserSettingsStore.saveSettings(s);
+          setSettings(s);
+          applyTheme(s.theme);
+        };
+
+        const confirmBooking = async (data) => {
+          try {
+            BookingStore.createBooking(data);
+            setModalCtx(null);
+            refreshBookings();
+            toast("Booking confirmed", "success");
+          } catch (e) {
+            toast(e.message || "Could not book", "error");
+          }
+        };
+
+        const cancelBooking = (b) => {
+          if (!window.confirm("Cancel this booking?")) return;
+          BookingStore.cancelBooking(b.id);
+          refreshBookings();
+          toast("Booking cancelled", "success");
+        };
+
+        const openCalendar = (r) => { setCalResource(r); setView("calendar"); };
+
+        if (!authReady) {
+          return <div className="splash"><div className="spinner" /></div>;
+        }
+
+        return (
+          <>
+            <Header
+              view={view}
+              setView={setView}
+              user={me}
+              theme={theme}
+              toggleTheme={toggleTheme}
+              onSignOut={signOut}
+            />
+            {!me ? (
+              <Landing onSignIn={signIn} signingIn={signingIn} />
+            ) : view === "dashboard" ? (
+              <Dashboard me={me} bookings={bookings} loading={loadingBookings} setView={setView} />
+            ) : view === "resources" ? (
+              <ResourceBrowser bookings={bookings} onPick={openCalendar} />
+            ) : view === "calendar" && calResource ? (
+              <Calendar
+                resource={calResource}
+                bookings={bookings}
+                me={me}
+                onSlot={(ctx) => setModalCtx(ctx)}
+                onBack={() => setView("resources")}
+              />
+            ) : view === "bookings" ? (
+              <MyBookings me={me} bookings={bookings} loading={loadingBookings} onCancel={cancelBooking} setView={setView} />
+            ) : view === "settings" ? (
+              <Settings settings={settings} onSave={saveSettings} theme={theme} setTheme={applyTheme} />
+            ) : (
+              <Dashboard me={me} bookings={bookings} loading={loadingBookings} setView={setView} />
+            )}
+
+            {modalCtx && (
+              <BookingModal ctx={modalCtx} me={me} onClose={() => setModalCtx(null)} onConfirm={confirmBooking} />
+            )}
+          </>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      );
+    </script>
+  </body>
+</html>
