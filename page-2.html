@@ -1503,53 +1503,60 @@
       }
 
       /* ════════════════ Service layer ════════════════
-         The ONLY place that touches storage. Components never read
-         localStorage or user.data directly. Swap these internals for a real
-         backend later without changing any UI code. */
+         The ONLY place that touches storage. Components never call the SDK
+         directly. Bookings live in a SHARED Klar Collection (a real
+         multi-user backend — visible across users and devices); per-user
+         settings live in Klar user.data. Both go through the signed-in user
+         client, set once via setUser(). */
 
-      // 1) Shared booking storage — localStorage (simulated shared backend)
-      const KEY_INDEX = "global_bookings";
-      const bookingKey = (id) => "global_booking_" + id;
-
+      // 1) Shared bookings — Klar Collections (user.collection("bookings")).
+      //    Records come back flattened (server id + your fields), so the rest
+      //    of the app is unchanged. The no-overlap guarantee is enforced
+      //    server-side once the collection's rule is set in Settings →
+      //    Collections; the client check below is only for instant feedback.
       const BookingStore = {
-        _index() {
-          try {
-            return JSON.parse(localStorage.getItem(KEY_INDEX) || "[]");
-          } catch {
-            return [];
-          }
+        _user: null,
+        setUser(u) {
+          this._user = u;
         },
-        _writeIndex(ids) {
-          localStorage.setItem(KEY_INDEX, JSON.stringify(ids));
+        _col() {
+          return this._user ? this._user.collection("bookings") : null;
         },
-        getBooking(id) {
-          try {
-            const r = localStorage.getItem(bookingKey(id));
-            return r ? JSON.parse(r) : null;
-          } catch {
-            return null;
-          }
+        async getAllBookings() {
+          const col = this._col();
+          if (!col) return [];
+          return col.list({ order: "start:asc", limit: 1000 });
         },
-        getAllBookings() {
-          return this._index()
-            .map((id) => this.getBooking(id))
-            .filter(Boolean);
+        async getBooking(id) {
+          const col = this._col();
+          return col ? (await col.get(id)) || null : null;
         },
-        getBookingsForResource(resourceId) {
-          return this.getAllBookings().filter(
-            (b) => b.resourceId === resourceId && b.status === "confirmed",
-          );
+        async getBookingsForResource(resourceId) {
+          const col = this._col();
+          if (!col) return [];
+          return col.list({ where: { resourceId, status: "confirmed" } });
         },
-        getBookingsForUser(userId) {
-          return this.getAllBookings().filter((b) => b.userId === userId);
+        async getBookingsForUser(userId) {
+          const col = this._col();
+          if (!col) return [];
+          return col.list({ where: { userId } });
         },
-        createBooking(data) {
+        async createBooking(data) {
+          const col = this._col();
+          if (!col) throw new Error("Sign in to book.");
           const start = new Date(data.start).getTime();
           const end = new Date(data.end).getTime();
           if (!(end > start)) throw new Error("End must be after start.");
           if (start < Date.now())
             throw new Error("Can't book a time in the past.");
-          const clash = this.getBookingsForResource(data.resourceId).some((b) =>
+          // Instant client-side check for a friendly message. The real
+          // guarantee is the collection's no-overlap rule, enforced atomically
+          // on the server — handled by the 409 case below even if two people
+          // race past this check at once.
+          const existing = await col.list({
+            where: { resourceId: data.resourceId, status: "confirmed" },
+          });
+          const clash = existing.some((b) =>
             hasOverlap(
               start,
               end,
@@ -1558,31 +1565,23 @@
             ),
           );
           if (clash) throw new Error("That time overlaps an existing booking.");
-          const rec = {
-            id: genId(),
-            status: "confirmed",
-            createdAt: new Date().toISOString(),
-            ...data,
-          };
-          localStorage.setItem(bookingKey(rec.id), JSON.stringify(rec));
-          const idx = this._index();
-          idx.push(rec.id);
-          this._writeIndex(idx);
-          return rec;
+          try {
+            return await col.create({ status: "confirmed", ...data });
+          } catch (e) {
+            if (e && e.status === 409)
+              throw new Error("That slot was just taken — pick another time.");
+            throw e;
+          }
         },
-        cancelBooking(id) {
-          const b = this.getBooking(id);
-          if (!b) return null;
-          b.status = "cancelled";
-          localStorage.setItem(bookingKey(id), JSON.stringify(b));
-          return b;
+        async cancelBooking(id) {
+          const col = this._col();
+          if (!col) return null;
+          return col.update(id, { status: "cancelled" });
         },
-        updateBooking(id, updates) {
-          const b = this.getBooking(id);
-          if (!b) return null;
-          const next = { ...b, ...updates };
-          localStorage.setItem(bookingKey(id), JSON.stringify(next));
-          return next;
+        async updateBooking(id, updates) {
+          const col = this._col();
+          if (!col) return null;
+          return col.update(id, updates);
         },
       };
 
@@ -2707,12 +2706,11 @@
         }, []);
 
         const refreshBookings = useCallback(() => {
-          // small async wrapper so swapping to a real backend later is trivial
           setLoadingBookings(true);
-          Promise.resolve(BookingStore.getAllBookings()).then((b) => {
-            setBookings(b);
-            setLoadingBookings(false);
-          });
+          Promise.resolve(BookingStore.getAllBookings())
+            .then((b) => setBookings(b))
+            .catch(() => setBookings([]))
+            .finally(() => setLoadingBookings(false));
         }, []);
 
         // Load the Klar Users SDK + wire auth lifecycle
@@ -2725,6 +2723,7 @@
               );
               const c = mod.createKlarUser({ projectId: PROJECT_ID });
               UserSettingsStore.setUser(c);
+              BookingStore.setUser(c);
               setClient(c);
               setMe(c.getUser());
               unsub = c.onChange((u) => setMe(u || null));
@@ -2793,7 +2792,7 @@
 
         const confirmBooking = async (data) => {
           try {
-            BookingStore.createBooking(data);
+            await BookingStore.createBooking(data);
             setModalCtx(null);
             refreshBookings();
             toast("Booking confirmed", "success");
@@ -2802,11 +2801,15 @@
           }
         };
 
-        const cancelBooking = (b) => {
+        const cancelBooking = async (b) => {
           if (!window.confirm("Cancel this booking?")) return;
-          BookingStore.cancelBooking(b.id);
-          refreshBookings();
-          toast("Booking cancelled", "success");
+          try {
+            await BookingStore.cancelBooking(b.id);
+            refreshBookings();
+            toast("Booking cancelled", "success");
+          } catch (e) {
+            toast(e.message || "Could not cancel", "error");
+          }
         };
 
         const openCalendar = (r) => {
