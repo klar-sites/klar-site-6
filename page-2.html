@@ -1874,7 +1874,7 @@
       }
 
       /* ════════════════ Landing ════════════════ */
-      function Landing({ onSignIn, signingIn }) {
+      function Landing({ onSignIn, signingIn, sdkError, host }) {
         const feats = [
           [
             "bolt",
@@ -1918,6 +1918,13 @@
                 <p className="tiny" style={{ marginTop: 14 }}>
                   Sign-in is handled securely by Klar — no setup required.
                 </p>
+                {sdkError && (
+                  <p className="tiny" style={{ marginTop: 8, color: "var(--danger)" }}>
+                    Couldn't load sign-in from {host}: {sdkError}. Make sure that
+                    host is running and serving <code>/sdk/users.js</code> with CORS,
+                    and open this page over http(s) (not file://).
+                  </p>
+                )}
               </section>
               <section className="features">
                 {feats.map(([ic, t, d]) => (
@@ -2684,6 +2691,7 @@
         const [client, setClient] = useState(null);
         const [me, setMe] = useState(null); // signed-in profile (or null)
         const [signingIn, setSigningIn] = useState(false);
+        const [sdkError, setSdkError] = useState(null);
 
         const [view, setView] = useState("dashboard");
         const [theme, setThemeState] = useState("dark");
@@ -2722,6 +2730,7 @@
               unsub = c.onChange((u) => setMe(u || null));
             } catch (e) {
               console.warn("Klar Users SDK failed to load", e);
+              setSdkError(e && e.message ? e.message : String(e));
             } finally {
               setAuthReady(true);
             }
@@ -2752,7 +2761,7 @@
 
         const signIn = async () => {
           if (!client) {
-            toast("Sign-in is unavailable right now.", "error");
+            toast(sdkError ? "Sign-in unavailable: " + sdkError : "Sign-in unavailable — the Klar SDK didn't load.", "error");
             return;
           }
           setSigningIn(true);
@@ -2824,7 +2833,7 @@
               onSignOut={signOut}
             />
             {!me ? (
-              <Landing onSignIn={signIn} signingIn={signingIn} />
+              <Landing onSignIn={signIn} signingIn={signingIn} sdkError={sdkError} host={KLAR_HOST} />
             ) : view === "dashboard" ? (
               <Dashboard
                 me={me}
@@ -2878,7 +2887,15 @@
         );
       }
 
-      ReactDOM.createRoot(document.getElementById("root")).render(
+      // Mount into a guaranteed-empty #root. Klar's preview mode re-runs this
+      // page from a serialized snapshot of the editor's live DOM — which already
+      // contains React's previous render baked into #root. createRoot() does NOT
+      // hydrate that snapshot, so without wiping it first React reconciles
+      // against stale nodes and throws removeChild/insertBefore errors. Clearing
+      // #root makes the mount idempotent in both the editor and the preview.
+      const rootEl = document.getElementById("root");
+      rootEl.innerHTML = "";
+      ReactDOM.createRoot(rootEl).render(
         <ToastProvider>
           <App />
         </ToastProvider>,
