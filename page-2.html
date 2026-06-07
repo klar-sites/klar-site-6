@@ -2890,19 +2890,24 @@
         );
       }
 
-      // Mount into a guaranteed-empty #root. Klar's preview mode re-runs this
-      // page from a serialized snapshot of the editor's live DOM — which already
-      // contains React's previous render baked into #root. createRoot() does NOT
-      // hydrate that snapshot, so without wiping it first React reconciles
-      // against stale nodes and throws removeChild/insertBefore errors. Clearing
-      // #root makes the mount idempotent in both the editor and the preview.
-      const rootEl = document.getElementById("root");
-      rootEl.innerHTML = "";
-      ReactDOM.createRoot(rootEl).render(
-        <ToastProvider>
-          <App />
-        </ToastProvider>,
-      );
+      // Mount exactly once. Klar's preview re-runs this page from a serialized
+      // snapshot of the editor's live DOM, and that snapshot also contains the
+      // compiled copy of this module that Babel injected — so in preview the
+      // mount code can execute TWICE. Two createRoot() calls on the same #root
+      // spin up two React roots that tear each other's DOM apart (the
+      // removeChild/insertBefore "not a child" crashes). The window flag makes
+      // any second run a no-op; clearing #root drops the baked snapshot so the
+      // single real mount starts from an empty container.
+      if (!window.__SLATE_MOUNTED__) {
+        window.__SLATE_MOUNTED__ = true;
+        const rootEl = document.getElementById("root");
+        rootEl.innerHTML = "";
+        ReactDOM.createRoot(rootEl).render(
+          <ToastProvider>
+            <App />
+          </ToastProvider>,
+        );
+      }
     </script>
   </body>
 </html>
