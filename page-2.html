@@ -1787,7 +1787,7 @@
       }
 
       /* ════════════════ Header ════════════════ */
-      function Header({ view, setView, user, theme, toggleTheme, onSignOut }) {
+      function Header({ view, setView, user, theme, toggleTheme, onSignOut, isAdmin }) {
         const [menu, setMenu] = useState(false);
         const ref = useRef(null);
         useEffect(() => {
@@ -1802,6 +1802,7 @@
           ["resources", "Resources"],
           ["bookings", "My Bookings"],
           ["settings", "Settings"],
+          ...(isAdmin ? [["admin", "Admin"]] : []),
         ];
         return (
           <header className="header">
@@ -1918,10 +1919,13 @@
                   Sign-in is handled securely by Klar — no setup required.
                 </p>
                 {sdkError && (
-                  <p className="tiny" style={{ marginTop: 8, color: "var(--danger)" }}>
-                    Couldn't load sign-in from {host}: {sdkError}. Make sure that
-                    host is running and serving <code>/sdk/users.js</code> with CORS,
-                    and open this page over http(s) (not file://).
+                  <p
+                    className="tiny"
+                    style={{ marginTop: 8, color: "var(--danger)" }}
+                  >
+                    Couldn't load sign-in from {host}: {sdkError}. Make sure
+                    that host is running and serving <code>/sdk/users.js</code>{" "}
+                    with CORS, and open this page over http(s) (not file://).
                   </p>
                 )}
               </section>
@@ -1942,6 +1946,188 @@
       }
 
       /* ════════════════ Dashboard ════════════════ */
+      // ---- Admin (project owner only) ----
+      // A master-detail panel built entirely on client.admin.*, which the server
+      // gates by Google-account match. A non-admin who forced this open just
+      // gets 403s + the error note. See users → edit their bookings + data.
+      const miniBtn = {
+        fontSize: "12px", padding: "5px 9px", border: "1px solid var(--border-color)",
+        borderRadius: "var(--radius-sm)", background: "var(--bg-elevated)",
+        color: "var(--text-secondary)", cursor: "pointer",
+      };
+      const sectionTitle = { fontSize: "14px", fontWeight: 700, margin: "0 0 var(--space-sm)" };
+
+      function AdminDataRow({ dataKey, value, onSave, onDelete }) {
+        const [editing, setEditing] = useState(false);
+        const [draft, setDraft] = useState("");
+        const pretty = JSON.stringify(value, null, 2);
+        return (
+          <div style={{ border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", padding: "var(--space-md)", marginBottom: "var(--space-sm)", background: "var(--bg-elevated)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: editing ? "var(--space-sm)" : 0 }}>
+              <code style={{ fontSize: "13px", fontWeight: 600 }}>{dataKey}</code>
+              <div style={{ display: "flex", gap: "var(--space-xs)" }}>
+                {!editing && <button style={miniBtn} onClick={() => { setDraft(pretty); setEditing(true); }}>Edit</button>}
+                {editing && <button style={miniBtn} onClick={() => { onSave(draft); setEditing(false); }}>Save</button>}
+                {editing && <button style={miniBtn} onClick={() => setEditing(false)}>Cancel</button>}
+                <button style={{ ...miniBtn, color: "var(--danger)" }} onClick={onDelete}>Delete</button>
+              </div>
+            </div>
+            {editing ? (
+              <textarea value={draft} onChange={(e) => setDraft(e.target.value)} spellCheck={false}
+                style={{ width: "100%", minHeight: "90px", fontFamily: "monospace", fontSize: "12px", padding: "var(--space-sm)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", background: "var(--bg-secondary)", color: "var(--text-primary)", resize: "vertical", boxSizing: "border-box" }} />
+            ) : (
+              <pre style={{ margin: 0, fontSize: "12px", color: "var(--text-secondary)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{pretty}</pre>
+            )}
+          </div>
+        );
+      }
+
+      function AdminView({ client }) {
+        const [users, setUsers] = useState(null);
+        const [q, setQ] = useState("");
+        const [selId, setSelId] = useState(null);
+        const [detail, setDetail] = useState(null);
+        const [detailLoading, setDetailLoading] = useState(false);
+        const [err, setErr] = useState(null);
+        const [newKey, setNewKey] = useState("");
+
+        const loadUsers = useCallback(async () => {
+          try { const r = await client.admin.listUsers({ limit: 200 }); setUsers(r.users); setErr(null); }
+          catch (e) { setErr(e && e.status === 403 ? "You're not the admin of this project." : e.message || "Failed to load users"); }
+        }, [client]);
+        useEffect(() => { loadUsers(); }, [loadUsers]);
+
+        const openUser = useCallback(async (id) => {
+          setSelId(id); setDetail(null); setDetailLoading(true);
+          try { setDetail(await client.admin.getUser(id)); }
+          catch (e) { alert(e.message || "Failed to load user"); }
+          finally { setDetailLoading(false); }
+        }, [client]);
+        const refreshDetail = useCallback(() => { if (selId != null) openUser(selId); }, [selId, openUser]);
+
+        const removeUser = async () => {
+          if (!detail) return;
+          const who = detail.profile.name || detail.profile.email;
+          if (!window.confirm(`Delete ${who}? Their saved data is removed; their bookings stay but lose their owner.`)) return;
+          try { await client.admin.deleteUser(detail.profile.id); setSelId(null); setDetail(null); loadUsers(); }
+          catch (e) { alert(e.message || "Delete failed"); }
+        };
+        const cancelRec = async (rec) => {
+          try { await client.admin.updateRecord(rec.collection, rec.id, { status: "cancelled" }); refreshDetail(); loadUsers(); }
+          catch (e) { alert(e.message || "Couldn't cancel"); }
+        };
+        const deleteRec = async (rec) => {
+          if (!window.confirm("Delete this record permanently?")) return;
+          try { await client.admin.deleteRecord(rec.collection, rec.id); refreshDetail(); loadUsers(); }
+          catch (e) { alert(e.message || "Delete failed"); }
+        };
+        const saveData = async (key, raw) => {
+          let value; try { value = JSON.parse(raw); } catch { alert("Value must be valid JSON."); return; }
+          try { await client.admin.setUserData(detail.profile.id, key, value); refreshDetail(); }
+          catch (e) { alert(e.message || "Save failed"); }
+        };
+        const addKey = async () => {
+          const k = newKey.trim(); if (!k) return;
+          try { await client.admin.setUserData(detail.profile.id, k, null); setNewKey(""); refreshDetail(); }
+          catch (e) { alert(e.message || "Add failed"); }
+        };
+        const deleteData = async (key) => {
+          if (!window.confirm(`Delete data key "${key}"?`)) return;
+          try { await client.admin.deleteUserData(detail.profile.id, key); refreshDetail(); }
+          catch (e) { alert(e.message || "Delete failed"); }
+        };
+
+        const s = q.trim().toLowerCase();
+        const filtered = (users || []).filter((u) => !s || (u.name || "").toLowerCase().includes(s) || (u.email || "").toLowerCase().includes(s));
+
+        return (
+          <main className="container" style={{ paddingTop: "var(--space-xl)", paddingBottom: "var(--space-2xl)" }}>
+            <h1 style={{ marginBottom: "var(--space-xs)" }}>Admin</h1>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "var(--space-lg)" }}>
+              See everyone who signed in, and edit their bookings and data.
+            </p>
+            {err && <div style={{ padding: "var(--space-md)", borderRadius: "var(--radius-md)", background: "var(--danger-soft)", color: "var(--danger)", marginBottom: "var(--space-md)" }}>{err}</div>}
+
+            <div style={{ display: "flex", gap: "var(--space-lg)", alignItems: "flex-start", flexWrap: "wrap" }}>
+              <div style={{ flex: "1 1 280px", minWidth: "260px", maxWidth: "360px" }}>
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search users…"
+                  style={{ width: "100%", padding: "10px 12px", marginBottom: "var(--space-sm)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", background: "var(--bg-elevated)", color: "var(--text-primary)", boxSizing: "border-box" }} />
+                {!users ? (
+                  <div style={{ color: "var(--text-tertiary)", padding: "var(--space-md)" }}>Loading…</div>
+                ) : filtered.length === 0 ? (
+                  <div style={{ color: "var(--text-tertiary)", padding: "var(--space-md)" }}>No users.</div>
+                ) : (
+                  filtered.map((u) => {
+                    const active = u.id === selId;
+                    return (
+                      <button key={u.id} onClick={() => openUser(u.id)}
+                        style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", width: "100%", textAlign: "left", padding: "var(--space-sm)", marginBottom: "6px", borderRadius: "var(--radius-md)", cursor: "pointer", border: "1px solid " + (active ? "var(--accent)" : "var(--border-color)"), background: active ? "var(--accent-soft)" : "var(--bg-elevated)" }}>
+                        <Avatar user={u} />
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: "block", fontWeight: 600, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.name || u.email}</span>
+                          <span style={{ display: "block", fontSize: "12px", color: "var(--text-tertiary)" }}>{u.dataKeys} keys · {u.records} records</span>
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              <div style={{ flex: "2 1 420px", minWidth: "300px" }}>
+                {selId == null ? (
+                  <div style={{ padding: "var(--space-2xl)", textAlign: "center", color: "var(--text-tertiary)", border: "1px dashed var(--border-color)", borderRadius: "var(--radius-lg)" }}>
+                    Select a user to see and edit their details.
+                  </div>
+                ) : detailLoading || !detail ? (
+                  <div style={{ padding: "var(--space-2xl)", textAlign: "center", color: "var(--text-tertiary)" }}>Loading…</div>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", padding: "var(--space-lg)", borderRadius: "var(--radius-lg)", background: "var(--bg-elevated)", border: "1px solid var(--border-color)", marginBottom: "var(--space-lg)" }}>
+                      <Avatar user={detail.profile} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: "17px" }}>{detail.profile.name || "—"}</div>
+                        <div style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{detail.profile.email}</div>
+                      </div>
+                      <button onClick={removeUser} style={{ padding: "8px 14px", borderRadius: "var(--radius-sm)", border: "none", background: "var(--danger-soft)", color: "var(--danger)", fontWeight: 600, cursor: "pointer" }}>Delete user</button>
+                    </div>
+
+                    <h2 style={sectionTitle}>Bookings ({detail.records.length})</h2>
+                    {detail.records.length === 0 && <div style={{ color: "var(--text-tertiary)", marginBottom: "var(--space-md)" }}>No bookings.</div>}
+                    {detail.records.map((rec) => {
+                      const b = rec.data || {};
+                      const cancelled = b.status === "cancelled";
+                      return (
+                        <div key={rec.id} style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", padding: "var(--space-md)", marginBottom: "var(--space-sm)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", background: "var(--bg-elevated)", opacity: cancelled ? 0.6 : 1 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600 }}>{b.resourceName || b.resourceId || rec.collection}</div>
+                            <div style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>
+                              {b.start ? `${fmtDay(new Date(b.start))} ${fmtTime(new Date(b.start))}` : ""} · {b.status || "—"}
+                            </div>
+                          </div>
+                          {!cancelled && <button style={miniBtn} onClick={() => cancelRec(rec)}>Cancel</button>}
+                          <button style={{ ...miniBtn, color: "var(--danger)" }} onClick={() => deleteRec(rec)}>Delete</button>
+                        </div>
+                      );
+                    })}
+
+                    <h2 style={{ ...sectionTitle, marginTop: "var(--space-xl)" }}>Saved data ({Object.keys(detail.data).length})</h2>
+                    {Object.keys(detail.data).length === 0 && <div style={{ color: "var(--text-tertiary)", marginBottom: "var(--space-sm)" }}>No stored data.</div>}
+                    {Object.entries(detail.data).map(([k, v]) => (
+                      <AdminDataRow key={k} dataKey={k} value={v} onSave={(raw) => saveData(k, raw)} onDelete={() => deleteData(k)} />
+                    ))}
+                    <div style={{ display: "flex", gap: "var(--space-sm)", marginTop: "var(--space-sm)" }}>
+                      <input value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="new-key"
+                        style={{ flex: 1, padding: "8px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", background: "var(--bg-elevated)", color: "var(--text-primary)", boxSizing: "border-box" }} />
+                      <button style={miniBtn} onClick={addKey} disabled={!newKey.trim()}>Add key</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </main>
+        );
+      }
+
       function Dashboard({ me, bookings, loading, setView, onBook }) {
         const now = Date.now();
         const mine = bookings.filter((b) => b.userId === me.sub);
@@ -2699,6 +2885,7 @@
         const [loadingBookings, setLoadingBookings] = useState(true);
         const [calResource, setCalResource] = useState(null);
         const [modalCtx, setModalCtx] = useState(null);
+        const [isAdmin, setIsAdmin] = useState(false);
 
         const applyTheme = useCallback((t) => {
           setThemeState(t);
@@ -2726,7 +2913,11 @@
               BookingStore.setUser(c);
               setClient(c);
               setMe(c.getUser());
-              unsub = c.onChange((u) => setMe(u || null));
+              setIsAdmin(!!(c.isAdmin && c.isAdmin()));
+              unsub = c.onChange((u) => {
+                setMe(u || null);
+                setIsAdmin(!!(c.isAdmin && c.isAdmin()));
+              });
             } catch (e) {
               console.warn("Klar Users SDK failed to load", e);
               setSdkError(e && e.message ? e.message : String(e));
@@ -2760,7 +2951,12 @@
 
         const signIn = async () => {
           if (!client) {
-            toast(sdkError ? "Sign-in unavailable: " + sdkError : "Sign-in unavailable — the Klar SDK didn't load.", "error");
+            toast(
+              sdkError
+                ? "Sign-in unavailable: " + sdkError
+                : "Sign-in unavailable — the Klar SDK didn't load.",
+              "error",
+            );
             return;
           }
           setSigningIn(true);
@@ -2834,9 +3030,15 @@
               theme={theme}
               toggleTheme={toggleTheme}
               onSignOut={signOut}
+              isAdmin={isAdmin}
             />
             {!me ? (
-              <Landing onSignIn={signIn} signingIn={signingIn} sdkError={sdkError} host={KLAR_HOST} />
+              <Landing
+                onSignIn={signIn}
+                signingIn={signingIn}
+                sdkError={sdkError}
+                host={KLAR_HOST}
+              />
             ) : view === "dashboard" ? (
               <Dashboard
                 me={me}
@@ -2869,6 +3071,8 @@
                 theme={theme}
                 setTheme={applyTheme}
               />
+            ) : view === "admin" && isAdmin ? (
+              <AdminView client={client} />
             ) : (
               <Dashboard
                 me={me}
