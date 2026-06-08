@@ -1431,6 +1431,25 @@
 <p>Your booking for <strong>{{ data.resourceName }}</strong> on {{ data.start | date: "%b %-d, %H:%M" }} has been cancelled.</p>
 <p>If you didn't request this, please get in touch.</p>`,
         },
+        // SMS versions (channel:"sms", text-only) sent to the phone the booker
+        // entered → to:"field:phone". Only fire when a phone was provided AND the
+        // Klar host has 46elks configured (ELKS_* env); otherwise a silent no-op.
+        bookingConfirmationSms: {
+          collection: "bookings",
+          on: "create",
+          channel: "sms",
+          to: "field:phone",
+          text: "Booked: {{ data.resourceName }} on {{ data.start | date: '%b %-d, %H:%M' }}. See you then!",
+        },
+        bookingReminderSms: {
+          collection: "bookings",
+          schedule: { every: "day", atHour: 9 },
+          window: { dateField: "start", withinHours: 24 },
+          where: { status: "confirmed" },
+          channel: "sms",
+          to: "field:phone",
+          text: "Reminder: {{ data.resourceName }} on {{ data.start | date: '%b %-d, %H:%M' }}.",
+        },
       };
 
       const RESOURCES = [
@@ -2637,6 +2656,7 @@
       /* ════════════════ Booking modal ════════════════ */
       function BookingModal({ ctx, me, onClose, onConfirm }) {
         const [dur, setDur] = useState(30);
+        const [phone, setPhone] = useState("");
         const [busy, setBusy] = useState(false);
         const start = ctx.start;
         const end = addMinutes(start, dur);
@@ -2649,6 +2669,7 @@
             userName: me.name || me.email || "User",
             start: start.toISOString(),
             end: end.toISOString(),
+            phone: phone.trim(), // for the SMS confirmation automation (to: field:phone)
           });
           setBusy(false);
         };
@@ -2685,6 +2706,16 @@
                     <option value={90}>1.5 hours</option>
                     <option value={120}>2 hours</option>
                   </select>
+                </div>
+                <div className="field">
+                  <label className="label">Phone — for an SMS confirmation (optional)</label>
+                  <input
+                    className="input"
+                    type="tel"
+                    placeholder="+46 70 123 45 67"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="modal-foot">
