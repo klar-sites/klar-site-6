@@ -1397,6 +1397,30 @@
       const PROJECT_ID = 434; // ← set to your Klar project id
       const KLAR_HOST = "http://localhost:5173";
 
+      // Email automations this app self-provisions (owner-gated, create-if-absent).
+      // Subjects/bodies are Liquid; recipient "owner" = the booker's email.
+      const KLAR_AUTOMATIONS = {
+        bookingConfirmation: {
+          collection: "bookings",
+          on: "create",
+          to: "owner",
+          subject: "Booking confirmed — {{ data.resourceName }}",
+          body: `<p>Hi {{ data.userName }},</p>
+<p>Your booking for <strong>{{ data.resourceName }}</strong> on {{ data.start | date: "%b %-d, %H:%M" }} is confirmed.</p>
+<p>See you then!</p>`,
+        },
+        bookingReminder: {
+          collection: "bookings",
+          schedule: { every: "day", atHour: 9 },
+          window: { dateField: "start", withinHours: 24 },
+          where: { status: "confirmed" },
+          to: "owner",
+          subject: "Reminder — {{ data.resourceName }} is coming up",
+          body: `<p>Hi {{ data.userName }},</p>
+<p>A reminder that you have <strong>{{ data.resourceName }}</strong> booked for {{ data.start | date: "%b %-d, %H:%M" }}.</p>`,
+        },
+      };
+
       const RESOURCES = [
         {
           id: "room-a",
@@ -2929,6 +2953,15 @@
             if (typeof unsub === "function") unsub();
           };
         }, []);
+
+        // Once the owner is signed in, self-provision this app's email automations
+        // (confirmation on booking + daily reminder). Idempotent; a non-admin just
+        // gets a 403 we ignore.
+        useEffect(() => {
+          if (isAdmin && client?.admin) {
+            client.admin.ensureAutomations(KLAR_AUTOMATIONS).catch(() => {});
+          }
+        }, [isAdmin, client]);
 
         // When the signed-in user changes, load their settings + bookings
         useEffect(() => {
