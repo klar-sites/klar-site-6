@@ -1419,6 +1419,18 @@
           body: `<p>Hi {{ data.userName }},</p>
 <p>A reminder that you have <strong>{{ data.resourceName }}</strong> booked for {{ data.start | date: "%b %-d, %H:%M" }}.</p>`,
         },
+        // Cancelling a booking is an `update` to status:"cancelled" (both the
+        // user's "Cancel" and the admin's). This fires only on that transition.
+        bookingCancellation: {
+          collection: "bookings",
+          on: "update",
+          where: { status: "cancelled" },
+          to: "owner",
+          subject: "Booking cancelled — {{ data.resourceName }}",
+          body: `<p>Hi {{ data.userName }},</p>
+<p>Your booking for <strong>{{ data.resourceName }}</strong> on {{ data.start | date: "%b %-d, %H:%M" }} has been cancelled.</p>
+<p>If you didn't request this, please get in touch.</p>`,
+        },
       };
 
       const RESOURCES = [
