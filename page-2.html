@@ -2061,7 +2061,7 @@
                     const active = u.id === selId;
                     return (
                       <button key={u.id} onClick={() => openUser(u.id)}
-                        style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", width: "100%", textAlign: "left", padding: "var(--space-sm)", marginBottom: "6px", borderRadius: "var(--radius-md)", cursor: "pointer", border: "1px solid " + (active ? "var(--accent)" : "var(--border-color)"), background: active ? "var(--accent-soft)" : "var(--bg-elevated)" }}>
+                        style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", width: "100%", textAlign: "left", padding: "var(--space-sm)", marginBottom: "6px", borderRadius: "var(--radius-md)", cursor: "pointer", color: "var(--text-primary)", border: "1px solid " + (active ? "var(--accent)" : "var(--border-color)"), background: active ? "var(--accent-soft)" : "var(--bg-elevated)" }}>
                         <Avatar user={u} />
                         <span style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ display: "block", fontWeight: 600, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.name || u.email}</span>
