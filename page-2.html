@@ -4,27 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Slate — Room &amp; resource booking</title>
-    <meta
-      name="description"
-      content="Slate is a premium room and resource booking platform. Browse spaces, check availability, and book in seconds."
-    />
+    <meta name="description"
+      content="Slate is a premium room and resource booking platform. Browse spaces, check availability, and book in seconds." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
 
     <!-- React + Babel via CDN (no build step) -->
-    <script
-      crossorigin
-      src="https://unpkg.com/react@18/umd/react.production.min.js"
-    ></script>
-    <script
-      crossorigin
-      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
-    ></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
 
     <style>
       /* ───────────── Reset ───────────── */
@@ -369,11 +359,9 @@
         width: 30px;
         height: 30px;
         border-radius: 9px;
-        background: linear-gradient(
-          140deg,
-          var(--accent),
-          color-mix(in srgb, var(--accent) 55%, #c4b5fd)
-        );
+        background: linear-gradient(140deg,
+            var(--accent),
+            color-mix(in srgb, var(--accent) 55%, #c4b5fd));
         display: grid;
         place-items: center;
         color: #fff;
@@ -905,13 +893,11 @@
 
       .slot.booked {
         cursor: default;
-        background: repeating-linear-gradient(
-          45deg,
-          var(--bg-inset),
-          var(--bg-inset) 6px,
-          transparent 6px,
-          transparent 12px
-        );
+        background: repeating-linear-gradient(45deg,
+            var(--bg-inset),
+            var(--bg-inset) 6px,
+            transparent 6px,
+            transparent 12px);
       }
 
       .slot.mine {
@@ -1170,12 +1156,10 @@
 
       /* ───────────── Skeleton / empty ───────────── */
       .skel {
-        background: linear-gradient(
-          90deg,
-          var(--bg-inset) 25%,
-          var(--bg-hover) 37%,
-          var(--bg-inset) 63%
-        );
+        background: linear-gradient(90deg,
+            var(--bg-inset) 25%,
+            var(--bg-hover) 37%,
+            var(--bg-inset) 63%);
         background-size: 400% 100%;
         animation: shimmer 1.3s ease infinite;
         border-radius: var(--radius-sm);
@@ -1228,11 +1212,9 @@
         left: 50%;
         top: -160px;
         transform: translateX(-50%);
-        background: radial-gradient(
-          ellipse,
-          var(--accent-soft),
-          transparent 65%
-        );
+        background: radial-gradient(ellipse,
+            var(--accent-soft),
+            transparent 65%);
         filter: blur(40px);
         pointer-events: none;
       }
